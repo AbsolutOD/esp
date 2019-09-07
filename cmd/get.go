@@ -17,56 +17,17 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/pinpt/esp/pkg/client"
+	"github.com/pinpt/esp/pkg/errors"
 
 	"github.com/logrusorgru/aurora"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
 
 	// load the color library
 	"github.com/spf13/cobra"
 )
 
-func printSSMError(err error) {
-	var errstr string
-
-	if awsErr, ok := err.(awserr.Error); ok {
-		switch awsErr.Code() {
-		case ssm.ErrCodeInternalServerError:
-			errstr = awsErr.Error()
-		case ssm.ErrCodeInvalidKeyId:
-			errstr = awsErr.Error()
-		case ssm.ErrCodeParameterNotFound:
-			errstr = awsErr.Error()
-		case ssm.ErrCodeParameterVersionNotFound:
-			errstr = awsErr.Error()
-		}
-	}
-	fmt.Printf("Error: %s", errstr)
-}
-
-func printSSMByPath(err error) {
-	var errstr string
-	if awsErr, ok := err.(awserr.Error); ok {
-		switch awsErr.Code() {
-		case ssm.ErrCodeInternalServerError:
-			errstr = awsErr.Error()
-		case ssm.ErrCodeInvalidFilterKey:
-			errstr = awsErr.Error()
-		case ssm.ErrCodeInvalidFilterOption:
-			errstr = awsErr.Error()
-		case ssm.ErrCodeInvalidFilterValue:
-			errstr = awsErr.Error()
-		case ssm.ErrCodeInvalidKeyId:
-			errstr = awsErr.Error()
-		case ssm.ErrCodeInvalidNextToken:
-			errstr = awsErr.Error()
-		}
-	}
-	fmt.Printf("Error: %s", errstr)
-}
 
 // getParam Queries the ssm param
 func getParam(sc *ssm.SSM, key string) *ssm.GetParameterOutput {
@@ -75,7 +36,7 @@ func getParam(sc *ssm.SSM, key string) *ssm.GetParameterOutput {
 	}
 	param, err := sc.GetParameter(si)
 	if err != nil {
-		printSSMError(err)
+		errors.CheckSSMError(err)
 	}
 
 	return param
@@ -88,19 +49,10 @@ func getParamsByPath(sc *ssm.SSM, path string) *ssm.GetParametersByPathOutput {
 	params, err := sc.GetParametersByPath(si)
 
 	if err != nil {
-		printSSMByPath(err)
+		errors.CheckSSMByPath(err)
 	}
 }
 
-func getSsmClient(region string) *ssm.SSM {
-	cfg := &aws.Config{
-		Region: aws.String("us-east-1"),
-	}
-	sess := session.Must(session.NewSession(cfg))
-	ss := ssm.New(sess)
-
-	return ss
-}
 
 // getCmd represents the path command
 var getCmd = &cobra.Command{
@@ -109,8 +61,7 @@ var getCmd = &cobra.Command{
 	Long:  `Allows you to get a specific ssm parameter with an exact path.`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		sc := getSsmClient("us-east-1")
-		var results []
+		sc := client.getSsmClient("us-east-1")
 
 		//fmt.Printf("Getting: %v\n", args[0])
 		if flag, _ := cmd.Flags().GetBool("recursive"); flag {
