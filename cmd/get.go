@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/pinpt/esp/pkg/client"
 	"github.com/pinpt/esp/pkg/errors"
 
@@ -24,33 +25,32 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/ssm"
 
-	// load the color library
 	"github.com/spf13/cobra"
 )
 
 
 // getParam Queries the ssm param
-func getParam(sc *ssm.SSM, key string) *ssm.GetParameterOutput {
+func getParam(ec client.EspConfig, key string) []*ssm.Parameter {
 	si := &ssm.GetParameterInput{
 		Name: &key,
 	}
-	param, err := sc.GetParameter(si)
+	param, err := ec.Client.GetParameter(si)
 	if err != nil {
 		errors.CheckSSMError(err)
 	}
 
-	return param
+	return [param.Parameter]
 }
 
-func getParamsByPath(sc *ssm.SSM, path string) *ssm.GetParametersByPathOutput {
+func getParamsByPath(ec client.EspConfig, path string) *ssm.GetParametersByPathOutput {
 	si := &ssm.GetParametersByPathInput{
-		Path: path,
+		Path: aws.String(path),
 	}
-	params, err := sc.GetParametersByPath(si)
-
+	params, err := ec.Client.GetParametersByPath(si)
 	if err != nil {
 		errors.CheckSSMByPath(err)
 	}
+	return params
 }
 
 
@@ -61,13 +61,13 @@ var getCmd = &cobra.Command{
 	Long:  `Allows you to get a specific ssm parameter with an exact path.`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		sc := client.getSsmClient("us-east-1")
+		ec := client.New("us-east-1")
 
 		//fmt.Printf("Getting: %v\n", args[0])
 		if flag, _ := cmd.Flags().GetBool("recursive"); flag {
-			getParamsByPath(sc, args[0])
+			getParamsByPath(ec, args[0])
 		} else {
-			getParam(sc, args[0])
+			getParam(ec, args[0])
 		}
 
 		keystr := aurora.BrightYellow(args[0])
