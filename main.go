@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "github.com/pinpt/gsp/cmd"
+import "github.com/pinpt/esp/cmd"
 
 func main() {
   cmd.Execute()

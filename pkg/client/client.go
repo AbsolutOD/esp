@@ -4,14 +4,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 )
 
 type EspConfig struct {
-	Client ssmiface.SSMAPI
+	Svc *ssm.SSM
+	//Client ssmiface.SSMAPI
 	Region string
 	Cfg aws.Config
-	//client ssm.Session
+	session *session.Session
 }
 
 func New(region string) EspConfig {
@@ -21,10 +21,12 @@ func New(region string) EspConfig {
 			Region: aws.String(region),
 		},
 	}
+	e.GetSsmClient()
 	return e
 }
 
-func (e EspConfig) GetSsmClient(region string) {
-	sess := session.Must(session.NewSession(&e.Cfg))
-	e.Client = ssm.New(sess)
+// actually create the ssm client
+func (e *EspConfig) GetSsmClient() {
+	e.session = session.Must(session.NewSession(&e.Cfg))
+	e.Svc = ssm.New(e.session)
 }

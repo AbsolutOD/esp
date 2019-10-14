@@ -17,9 +17,34 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/logrusorgru/aurora"
+	"github.com/pinpt/esp/pkg/client"
+	"github.com/pinpt/esp/pkg/errors"
 
 	"github.com/spf13/cobra"
 )
+
+func getParamsByPath(ec client.EspConfig, d bool, path string) []*ssm.Parameter {
+	si := &ssm.GetParametersByPathInput{
+		Path: aws.String(path),
+		WithDecryption: aws.Bool(d),
+	}
+	params, err := ec.Svc.GetParametersByPath(si)
+	if err != nil {
+		errors.CheckSSMByPath(err)
+	}
+	return params.Parameters
+}
+
+func displayParams(p []*ssm.Parameter) {
+	for _, param := range p  {
+		name := aurora.BrightYellow(*param.Name)
+		fmt.Printf("%s: %s\n", name, *param.Value)
+	}
+}
+
 
 // listCmd represents the list command
 var listCmd = &cobra.Command{
@@ -33,6 +58,12 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("list called")
+		ec := client.New("us-east-1")
+		var params []*ssm.Parameter
+		decrypt, _ := cmd.Flags().GetBool("decrypt")
+
+		params = getParamsByPath(ec, decrypt, args[0])
+		displayParams(params)
 	},
 }
 

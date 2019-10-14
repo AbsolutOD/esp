@@ -30,8 +30,8 @@ var awsProfile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "gsp",
-	Short: "A brief description of your application",
+	Use:   "esp",
+	Short: "A utility to export SSM Parameter values into different formats.",
 	Long: `A longer description that spans multiple lines and likely contains
 examples and usage of using your application. For example:
 
@@ -59,7 +59,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.gsp.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.esp.yaml)")
 
 	// set AWS Profile
 	rootCmd.PersistentFlags().StringVar(&awsProfile, "profile", "default", "Set the AWS profile to use.")
@@ -82,9 +82,9 @@ func initConfig() {
 			os.Exit(1)
 		}
 
-		// Search config in home directory with name ".gsp" (without extension).
+		// Search config in home directory with name ".esp" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".gsp")
+		viper.SetConfigName(".esp")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match

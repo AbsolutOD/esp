@@ -16,62 +16,59 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/olekukonko/tablewriter"
 	"github.com/pinpt/esp/pkg/client"
 	"github.com/pinpt/esp/pkg/errors"
-
-	"github.com/logrusorgru/aurora"
+	"os"
 
 	"github.com/aws/aws-sdk-go/service/ssm"
 
 	"github.com/spf13/cobra"
 )
 
-
 // getParam Queries the ssm param
-func getParam(ec client.EspConfig, key string) []*ssm.Parameter {
+func getParam(ec client.EspConfig, d bool, key string) *ssm.Parameter {
 	si := &ssm.GetParameterInput{
-		Name: &key,
+		Name: aws.String(key),
+		WithDecryption: aws.Bool(d),
 	}
-	param, err := ec.Client.GetParameter(si)
+	resp, err := ec.Svc.GetParameter(si)
 	if err != nil {
-		errors.CheckSSMError(err)
+		errors.CheckSSMGetParameters(err)
 	}
 
-	return [param.Parameter]
+	return resp.Parameter
 }
 
-func getParamsByPath(ec client.EspConfig, path string) *ssm.GetParametersByPathOutput {
-	si := &ssm.GetParametersByPathInput{
-		Path: aws.String(path),
+func displayParam(p *ssm.Parameter) {
+	data := [][]string{
+		[]string{"ARN", *p.ARN},
+		[]string{"Last Modified Date", p.LastModifiedDate.String()},
+		[]string{"Name", *p.Name},
+		[]string{"Type", *p.Type},
+		[]string{"Value", *p.Value},
+		[]string{"Version", string(*p.Version)},
 	}
-	params, err := ec.Client.GetParametersByPath(si)
-	if err != nil {
-		errors.CheckSSMByPath(err)
-	}
-	return params
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Keys", "Value"})
+	table.AppendBulk(data)
+	table.Render()
 }
-
 
 // getCmd represents the path command
 var getCmd = &cobra.Command{
 	Use:   "get [path]",
 	Short: "Query path for SSM",
-	Long:  `Allows you to get a specific ssm parameter with an exact path.`,
+	Long:  `Allows you to get a specific ssm parameter with an exact path or recursively get params.`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		//fmt.Printf("Got: %s\n", args[0])
 		ec := client.New("us-east-1")
+		decrypt, _ := cmd.Flags().GetBool("decrypt")
 
-		//fmt.Printf("Getting: %v\n", args[0])
-		if flag, _ := cmd.Flags().GetBool("recursive"); flag {
-			getParamsByPath(ec, args[0])
-		} else {
-			getParam(ec, args[0])
-		}
-
-		keystr := aurora.BrightYellow(args[0])
-		fmt.Printf("%s: %s\n", keystr, *param.Parameter.Value)
+		param := getParam(ec, decrypt, args[0])
+		displayParam(param)
 	},
 }
 
@@ -88,6 +85,5 @@ func init() {
 	// is called directly, e.g.:
 	// getCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	getCmd.Flags().BoolP("recursive", "r", false, "Does a recursive query given a base path.")
-	//getCmd.Flags().BoolP("recursive", "r", false, "Does a recursive query given a base path.")
+	getCmd.Flags().BoolP("decrypt", "d", false, "Decrypt SSM secure strings.")
 }
