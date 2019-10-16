@@ -16,8 +16,8 @@ func CheckSSMGetParameters(err error) {
 		case ssm.ErrCodeInternalServerError:
 			errstr = awsErr.Error()
 		}
+		fmt.Printf("SSM Get Parameters Error: %s", errstr)
 	}
-	fmt.Printf("SSM Get Parameters Error: %s", errstr)
 }
 
 func CheckSSMError(err error) {
@@ -34,8 +34,8 @@ func CheckSSMError(err error) {
 		case ssm.ErrCodeParameterVersionNotFound:
 			errstr = awsErr.Error()
 		}
+		fmt.Printf("Error: %s", errstr)
 	}
-	fmt.Printf("Error: %s", errstr)
 }
 
 func CheckSSMByPath(err error) {
@@ -55,6 +55,6 @@ func CheckSSMByPath(err error) {
 		case ssm.ErrCodeInvalidNextToken:
 			errstr = awsErr.Error()
 		}
+		fmt.Printf("SSM By Path Error: %s", errstr)
 	}
-	fmt.Printf("SSM By Path Error: %s", errstr)
 }

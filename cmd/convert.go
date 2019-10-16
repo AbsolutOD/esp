@@ -67,6 +67,10 @@ func readTaskJson(p string) TaskEnvVars {
 }
 
 func buildEspVars(ev TaskEnvVars) map[string]EspVar {
+	/*var espvars = map[string]interface{}{
+		"static": make(map[string]EspVar),
+		"ssm": make(map[string]EspVar),
+	}*/
 	var espvars = make(map[string]EspVar)
 
 	for _, taskvar := range ev.Environment {

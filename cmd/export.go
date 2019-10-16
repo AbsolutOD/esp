@@ -20,23 +20,25 @@ import (
 	"fmt"
 	"github.com/logrusorgru/aurora"
 	"github.com/pinpt/esp/pkg/client"
+	"github.com/pinpt/esp/pkg/ssmparam"
 	"io/ioutil"
 	"os"
 
 	"github.com/spf13/cobra"
 )
 
-type ConfigMap struct {
-	Data []EspVar
+type EspFile struct {
+	Static []ConfigMapVar `json:"static"`
+	Ssm    []ConfigMapVar `json:"ssm"`
 }
 
 type ConfigMapVar struct {
-	Name string
-	Value string
-	SsmPath string
+	Name string    `json:"Name"`
+	Value string   `json:"Value,omitempty"`
+	SsmPath string `json:"Path,omitempty"`
 }
 
-func readEspJson(p string) TaskEnvVars {
+func readEspJson(p string) EspFile {
 	jsonfile, err := os.Open(p)
 	if err != nil {
 		fmt.Printf("%v %v", aurora.Red("Couldn't open: "), p)
@@ -46,43 +48,69 @@ func readEspJson(p string) TaskEnvVars {
 
 	byteValue, _ := ioutil.ReadAll(jsonfile)
 
-	var EnvSecretsVars TaskEnvVars
+	var espfile EspFile
 
-	json.Unmarshal(byteValue, &EnvSecretsVars)
-
-	fmt.Println(EnvSecretsVars)
-
-	return EnvSecretsVars
-}
-
-func buildVarsFromTaskEnvVars()  {
-
-}
-
-func getSecretsFromSsm(ec client.EspConfig, s []TaskSecretVar) []string {
-	var paths []*string
-	var pIndex map[string]int
-	for i, path := range s {
-		pIndex[path.Name] = i
-		paths = append(paths, &path.Path)
+	err = json.Unmarshal(byteValue, &espfile)
+	if err != nil {
+		fmt.Println("Error parsing json.")
+		fmt.Println(err)
 	}
-	/*params := ssmparam.GetMany(ec, true, paths)
+	//fmt.Println(espfile)
+
+	return espfile
+}
+
+//  TODO: don't need this at the moment
+//func buildVarsFromTaskEnvVars()  {
+//}
+
+// TODO: need to only pass 10 paths at a time.
+/*func getMultipleParamsFromSsm(ec client.EspConfig, s []ConfigMapVar) []ConfigMapVar {
+	var paths []*string
+	var pIndex = make(map[string]int)
+	var configMap []ConfigMapVar
+	for i, cmv := range s {
+		pIndex[cmv.SsmPath] = i
+		paths = append(paths, &cmv.SsmPath)
+	}
+	//fmt.Println(paths)
+	params := ssmparam.GetMany(ec, true, paths)
+	//fmt.Println(params)
 
 	for _, param := range params {
+		fmt.Println(*param.Name)
+		i := pIndex[*param.Name]
+		s[i].Value = *param.Value
+	}
+	return configMap
+}*/
 
-	}*/
-	return []string{}
+func getParamsFromSsm(ec client.EspConfig, s []ConfigMapVar) []ConfigMapVar {
+	var ssmparams []ConfigMapVar
+	var pIndex = make(map[string]int)
+	for i, cmv := range s {
+		pIndex[cmv.SsmPath] = i
+		param := ssmparam.GetOne(ec, true, cmv.SsmPath)
+		cmv.Value = *param.Value
+		ssmparams = append(ssmparams, cmv)
+	}
+
+	return ssmparams
 }
 
-func printVars(ev TaskEnvVars) {
-	for _, envvar := range ev.Environment {
-		fmt.Printf("%s: \"%s\"\n", envvar.Name, envvar.Value)
+func printVars(cm *[]string) {
+	for _, cmstr := range *cm {
+		fmt.Println(cmstr)
 	}
+}
 
-	for _, envvar := range ev.Secrets {
+func addConfigMapVars(cm []string, s []ConfigMapVar) []string {
 
-		fmt.Printf("%s: \"%s\"\n", envvar.Name, envvar.Path)
+	for _, cmv := range s {
+		cmvs := fmt.Sprintf("%s: %s", cmv.Name, cmv.Value)
+		cm = append(cm, cmvs)
 	}
+	return cm
 }
 
 // exportCmd represents the export command
@@ -96,11 +124,16 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		//ec := client.New("us-east-1")
-		fmt.Println("export called")
-		envvars := readEspJson(args[0])
-		//secretVars := getSecretsFromSsm(envvars.Secrets)
-		printVars(envvars)
+		var configMap []string
+		ec := client.New("us-east-1")
+		//fmt.Println("export called")
+		espfile := readEspJson(args[0])
+		configMap = addConfigMapVars(configMap, espfile.Static)
+		ssmparams := getParamsFromSsm(ec, espfile.Ssm)
+		//fmt.Println(ssmvars)
+		configMap = addConfigMapVars(configMap, ssmparams)
+		fmt.Println(configMap)
+		printVars(&configMap)
 	},
 }
 
