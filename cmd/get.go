@@ -41,6 +41,10 @@ func getParam(ec client.EspConfig, d bool, key string) *ssm.Parameter {
 	return resp.Parameter
 }
 
+func getParameters(key string)  {
+
+}
+
 func displayParam(p *ssm.Parameter) {
 	data := [][]string{
 		[]string{"ARN", *p.ARN},

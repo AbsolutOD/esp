@@ -16,15 +16,79 @@ limitations under the License.
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/logrusorgru/aurora"
+	"github.com/pinpt/esp/pkg/client"
+	"io/ioutil"
+	"os"
 
 	"github.com/spf13/cobra"
 )
 
+type ConfigMap struct {
+	Data []EspVar
+}
+
+type ConfigMapVar struct {
+	Name string
+	Value string
+	SsmPath string
+}
+
+func readEspJson(p string) TaskEnvVars {
+	jsonfile, err := os.Open(p)
+	if err != nil {
+		fmt.Printf("%v %v", aurora.Red("Couldn't open: "), p)
+	}
+	//fmt.Printf("Successfully Opened %s\n", p)
+	defer jsonfile.Close()
+
+	byteValue, _ := ioutil.ReadAll(jsonfile)
+
+	var EnvSecretsVars TaskEnvVars
+
+	json.Unmarshal(byteValue, &EnvSecretsVars)
+
+	fmt.Println(EnvSecretsVars)
+
+	return EnvSecretsVars
+}
+
+func buildVarsFromTaskEnvVars()  {
+
+}
+
+func getSecretsFromSsm(ec client.EspConfig, s []TaskSecretVar) []string {
+	var paths []*string
+	var pIndex map[string]int
+	for i, path := range s {
+		pIndex[path.Name] = i
+		paths = append(paths, &path.Path)
+	}
+	/*params := ssmparam.GetMany(ec, true, paths)
+
+	for _, param := range params {
+
+	}*/
+	return []string{}
+}
+
+func printVars(ev TaskEnvVars) {
+	for _, envvar := range ev.Environment {
+		fmt.Printf("%s: \"%s\"\n", envvar.Name, envvar.Value)
+	}
+
+	for _, envvar := range ev.Secrets {
+
+		fmt.Printf("%s: \"%s\"\n", envvar.Name, envvar.Path)
+	}
+}
+
 // exportCmd represents the export command
 var exportCmd = &cobra.Command{
 	Use:   "export",
-	Short: "A brief description of your command",
+	Short: "Export SSM Parameters in a format for a ConfigMap",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -32,7 +96,11 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		//ec := client.New("us-east-1")
 		fmt.Println("export called")
+		envvars := readEspJson(args[0])
+		//secretVars := getSecretsFromSsm(envvars.Secrets)
+		printVars(envvars)
 	},
 }
 
