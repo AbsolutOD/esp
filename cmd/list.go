@@ -20,8 +20,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/logrusorgru/aurora"
-	"github.com/pinpt/esp/pkg/client"
-	"github.com/pinpt/esp/pkg/errors"
+	"github.com/pinpt/esp/internal/client"
+	"github.com/pinpt/esp/internal/errors"
 
 	"github.com/spf13/cobra"
 )
@@ -60,7 +60,7 @@ to quickly create a Cobra application.`,
 		fmt.Println("list called")
 		ec := client.New("us-east-1")
 		var params []*ssm.Parameter
-		decrypt, _ := cmd.Flags().GetBool("decrypt")
+		decrypt, _ := cmd.PersistentFlags().GetBool("decrypt")
 
 		params = getParamsByPath(ec, decrypt, args[0])
 		displayParams(params)

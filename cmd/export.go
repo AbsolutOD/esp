@@ -19,8 +19,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/logrusorgru/aurora"
-	"github.com/pinpt/esp/pkg/client"
-	"github.com/pinpt/esp/pkg/ssmparam"
+	"github.com/pinpt/esp/internal/client"
+	"github.com/pinpt/esp/internal/ssmparam"
 	"io/ioutil"
 	"os"
 
@@ -132,7 +132,7 @@ to quickly create a Cobra application.`,
 		ssmparams := getParamsFromSsm(ec, espfile.Ssm)
 		//fmt.Println(ssmvars)
 		configMap = addConfigMapVars(configMap, ssmparams)
-		fmt.Println(configMap)
+		//fmt.Println(configMap)
 		printVars(&configMap)
 	},
 }

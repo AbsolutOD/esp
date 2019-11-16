@@ -18,8 +18,8 @@ package cmd
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/olekukonko/tablewriter"
-	"github.com/pinpt/esp/pkg/client"
-	"github.com/pinpt/esp/pkg/errors"
+	"github.com/pinpt/esp/internal/client"
+	"github.com/pinpt/esp/internal/errors"
 	"os"
 
 	"github.com/aws/aws-sdk-go/service/ssm"
@@ -88,6 +88,4 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// getCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
-	getCmd.Flags().BoolP("decrypt", "d", false, "Decrypt SSM secure strings.")
 }
