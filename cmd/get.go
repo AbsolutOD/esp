@@ -16,7 +16,9 @@ limitations under the License.
 package cmd
 
 import (
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/logrusorgru/aurora"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pinpt/esp/internal/client"
 	"github.com/pinpt/esp/internal/errors"
@@ -41,18 +43,27 @@ func getParam(ec client.EspConfig, d bool, key string) *ssm.Parameter {
 	return resp.Parameter
 }
 
-func getParameters(key string)  {
-
+func display(p *ssm.Parameter, detail bool) {
+	if detail {
+		detailDisplay(p)
+	} else {
+		displayParam(p)
+	}
 }
 
 func displayParam(p *ssm.Parameter) {
+	name := aurora.BrightYellow(*p.Name)
+	fmt.Printf("%s: %s\n", name, *p.Value)
+}
+
+func detailDisplay(p *ssm.Parameter) {
 	data := [][]string{
-		[]string{"ARN", *p.ARN},
-		[]string{"Last Modified Date", p.LastModifiedDate.String()},
-		[]string{"Name", *p.Name},
-		[]string{"Type", *p.Type},
-		[]string{"Value", *p.Value},
-		[]string{"Version", string(*p.Version)},
+		[]string{aurora.BrightYellow("ARN").String(), *p.ARN},
+		[]string{aurora.BrightYellow("Last_Modified").String(), p.LastModifiedDate.String()},
+		[]string{aurora.BrightYellow("Name").String(), *p.Name},
+		[]string{aurora.BrightYellow("Type").String(), *p.Type},
+		[]string{aurora.BrightYellow("Value").String(), *p.Value},
+		[]string{aurora.BrightYellow("Version").String(), string(*p.Version)},
 	}
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Keys", "Value"})
@@ -70,9 +81,10 @@ var getCmd = &cobra.Command{
 		//fmt.Printf("Got: %s\n", args[0])
 		ec := client.New("us-east-1")
 		decrypt, _ := cmd.Flags().GetBool("decrypt")
+		details, _ := cmd.Flags().GetBool("details")
 
 		param := getParam(ec, decrypt, args[0])
-		displayParam(param)
+		display(param, details)
 	},
 }
 
@@ -87,5 +99,5 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// getCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	getCmd.Flags().BoolP("details", "t", false, "Show all of the attributes of a parameter.")
 }

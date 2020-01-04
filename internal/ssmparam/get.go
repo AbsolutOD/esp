@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/pinpt/esp/pkg/client"
-	"github.com/pinpt/esp/pkg/errors"
+	"github.com/pinpt/esp/internal/client"
+	"github.com/pinpt/esp/internal/errors"
 )
 
 // getParam Queries the ssm param

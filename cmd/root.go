@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/pinpt/esp/internal/utility"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -27,17 +28,13 @@ import (
 
 var cfgFile string
 var awsProfile string
+var awsRegion string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "esp",
-	Short: "A utility to export SSM Parameter values into different formats.",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "A utility to browse and export SSM Parameter values into different formats.",
+	Long: `Coming Soon!`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	//	Run: func(cmd *cobra.Command, args []string) { },
@@ -62,7 +59,10 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.esp.yaml)")
 
 	// set AWS Profile
-	rootCmd.PersistentFlags().StringVar(&awsProfile, "profile", "default", "Set the AWS profile to use.")
+	profile := utility.GetEnv("AWS_PROFILE", "default")
+	region := utility.GetEnv("AWS_REGION", "us-east-1")
+	rootCmd.PersistentFlags().StringVar(&awsProfile, "profile", profile, "Set the AWS profile to use.")
+	rootCmd.PersistentFlags().StringVar(&awsRegion, "region", region, "Set the AWS region to use.")
 
 	rootCmd.PersistentFlags().BoolP("decrypt", "d", false, "Decrypt SSM secure strings.")
 
