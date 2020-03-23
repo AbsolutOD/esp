@@ -71,6 +71,8 @@ func init() {
 	// and all subcommands, e.g.:
 	// listCmd.PersistentFlags().String("foo", "", "A help for foo")
 
+	listCmd.Flags().BoolP("decrypt", "d", false, "Decrypt SSM secure strings.")
+
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// listCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")

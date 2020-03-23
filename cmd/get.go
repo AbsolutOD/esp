@@ -100,4 +100,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	getCmd.Flags().BoolP("details", "t", false, "Show all of the attributes of a parameter.")
+	getCmd.Flags().BoolP("decrypt", "d", false, "Decrypt SSM secure strings.")
 }
