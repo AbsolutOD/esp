@@ -15,16 +15,9 @@ limitations under the License.
 */
 package cmd
 
-import (
-	"fmt"
-
-	"github.com/pinpt/esp/internal/client"
-	"github.com/spf13/cobra"
-)
-
 //var copyDescription = "Copy SSM value from an existing path to a new path.\n"
 
-type CopyCommand struct {
+/*type CopyCommand struct {
 	source      string
 	destination string
 }
@@ -32,10 +25,10 @@ type CopyCommand struct {
 func (cc *CopyCommand) runCopy(region string) {
 	ec := client.New(region)
 	
-}
+}*/
 
 // cpCmd represents the cp command
-var copyCmd = &cobra.Command{
+/*var copyCmd = &cobra.Command{
 	Use:   "cp [OPTIONS] SRC_SSM_PATH DEST_SSM_PATH",
 	Aliases: []string{"cp"},
 	Short: "Copy a SSM Param from its current path to a new SSM Path",
@@ -57,10 +50,10 @@ var copyCmd = &cobra.Command{
 		return cc.runCopy(region)
 	},
 	Example: "esp cp /ssm/path/key /ssm/new/path/key",
-}
+}*/
 
 func init() {
-	rootCmd.AddCommand(copyCmd)
+	//rootCmd.AddCommand(copyCmd)
 
 	// Here you will define your flags and configuration settings.
 
