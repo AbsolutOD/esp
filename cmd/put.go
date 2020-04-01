@@ -17,15 +17,11 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
 
 	"github.com/pinpt/esp/internal/client"
 	"github.com/spf13/cobra"
 )
-
-func (p *param) put(region aws.Region) {
-	ec := client.New(region)
-
-}
 
 // putCmd represents the put command
 var putCmd = &cobra.Command{
@@ -40,7 +36,9 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		region, _ := cmd.Flags().GetString("region")
+		ec := client.New(region)
 		fmt.Println("put called")
+		ec.
 
 	},
 }
@@ -59,4 +57,5 @@ func init() {
 	// putCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	putCmd.Flags().String("path", "p", "Define the path for the SSM parameter")
 	putCmd.Flags().String("value", "v", "The value to be stored in the SSM.")
+	putCmd.Flags().BoolP("secure", "s", false, "Sets the SSM parameter type to 'SecureString'")
 }
