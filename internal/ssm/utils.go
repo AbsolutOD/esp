@@ -31,6 +31,6 @@ func (p *AwsParam) IsValid() error {
 	return errors.New("invalid SSM Parameter Type")
 }
 
-func ConvertToEspParam(ap *awsssm.Parameter) client.EspParam {
+func ConvertToEspParam(ap *awsssm.GetParameterOutput) client.EspParam {
 
 }

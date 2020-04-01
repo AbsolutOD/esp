@@ -20,17 +20,18 @@ func (s *Service) Save(p client.EspParam) (client.EspParam, error) {
 	panic("implement me")
 }
 
-func (s *Service) GetOne(p client.GetOneInput) client.EspParam {
+func (s *Service) GetOne(p client.GetOneInput) (client.EspParam, error) {
 	si := &awsssm.GetParameterInput{
 		Name: aws.String(p.Path),
 		WithDecryption: aws.Bool(p.Decrypt),
 	}
 	resp, err := s.Svc.GetParameter(si)
 	if err != nil {
-		errors.CheckSSMGetParameters(err)
+		CheckSSMGetParameters(err)
+		return client.EspParam{}, errors.New("")
 	}
-	param := utils.ConvertToEspParam(resp)
-	return param
+	param := ConvertToEspParam(resp)
+	return param, nil
 }
 
 /*func GetMany(ec client.EspConfig, d bool, paths []*string) []*ssm.Parameter {

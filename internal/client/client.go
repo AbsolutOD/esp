@@ -2,43 +2,60 @@ package client
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/pinpt/esp/internal/errors"
+	"github.com/pinpt/esp/internal/ssm"
 )
 
-type EspConfig struct {
-	Svc *ssm.SSM
-	//Client ssmiface.SSMAPI
-	Region string
-	Cfg aws.Config
-	session *session.Session
+type Backend string
+
+type Client interface {
+	Save(p EspParam) (EspParam, error)
+	GetOne(GetOneInput) EspParam
 }
 
-func New(region string) EspConfig {
-	e := EspConfig{
-		Region: region,
-		Cfg: aws.Config{
-			Region: aws.String(region),
-		},
+type EspParam struct {
+	Id string
+	Name string
+	Path string
+	Type string
+	Secure bool
+	Value string
+	Version int
+	LastModifiedDate float32
+}
+
+type EspParamInput struct {
+	Path string
+	Name string
+	Secure bool
+	Value string
+}
+
+type GetOneInput struct {
+	Name string
+	Decrypt bool
+}
+
+type EspClient struct {
+	Backend Backend
+	Client Client
+}
+
+func New(c EspClient) *EspClient {
+	if c.Backend == "ssm" {
+		svc := ssm.New()
+		c.Client = svc
 	}
-	e.GetSsmClient()
-	return e
-}
-
-// actually create the ssm client
-func (e *EspConfig) GetSsmClient() {
-	e.session = session.Must(session.NewSession(&e.Cfg))
-	e.Svc = ssm.New(e.session)
+	return &c
 }
 
 // getParam Queries the ssm param
-func (e *EspConfig) getParam(d bool, key string) *ssm.Parameter {
-	si := &ssm.GetParameterInput{
-		Name: aws.String(key),
-		WithDecryption: aws.Bool(d),
+func (c *EspClient) GetParam(debug bool, key string) EspParam {
+	in := &GetOneInput{
+		Name: key,
+		Decrypt: debug,
 	}
-	resp, err := e.Svc.GetParameter(si)
+	param := c.Client.GetOne(in)
 	if err != nil {
 		errors.CheckSSMGetParameters(err)
 	}
