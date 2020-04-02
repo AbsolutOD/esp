@@ -4,16 +4,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/logrusorgru/aurora"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pinpt/esp/internal/client"
-	"github.com/pinpt/esp/internal/utils"
 	"github.com/spf13/cobra"
 )
 
-func display(p *client.EspParam, detail bool) {
+func display(p client.EspParam, detail bool) {
 	if detail {
 		detailDisplay(p)
 	} else {
@@ -21,19 +18,19 @@ func display(p *client.EspParam, detail bool) {
 	}
 }
 
-func displayParam(p *client.EspParam) {
-	name := aurora.BrightYellow(*p.Name)
-	fmt.Printf("%s: %s\n", name, *p.Value)
+func displayParam(p client.EspParam) {
+	name := aurora.BrightYellow(p.Name)
+	fmt.Printf("%s: %s\n", name, p.Value)
 }
 
-func detailDisplay(p *client.EspParam) {
+func detailDisplay(p client.EspParam) {
 	data := [][]string{
-		[]string{aurora.BrightYellow("ID").String(), *p.Id},
+		[]string{aurora.BrightYellow("ID").String(), p.Id},
 		[]string{aurora.BrightYellow("Last_Modified").String(), p.LastModifiedDate.String()},
-		[]string{aurora.BrightYellow("Name").String(), *p.Name},
-		[]string{aurora.BrightYellow("Type").String(), *p.Type},
-		[]string{aurora.BrightYellow("Value").String(), *p.Value},
-		[]string{aurora.BrightYellow("Version").String(), string(*p.Version)},
+		[]string{aurora.BrightYellow("Name").String(), p.Name},
+		[]string{aurora.BrightYellow("Type").String(), p.Type},
+		[]string{aurora.BrightYellow("Value").String(), p.Value},
+		[]string{aurora.BrightYellow("Version").String(), string(p.Version)},
 	}
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Keys", "Value"})

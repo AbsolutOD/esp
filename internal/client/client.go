@@ -1,8 +1,8 @@
 package client
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/pinpt/esp/internal/errors"
+	"fmt"
+	"github.com/absolutod/esp/internal/errors"
 	"github.com/pinpt/esp/internal/ssm"
 )
 
@@ -10,7 +10,7 @@ type Backend string
 
 type Client interface {
 	Save(p EspParam) (EspParam, error)
-	GetOne(GetOneInput) EspParam
+	GetOne(p GetOneInput) (EspParam, error)
 }
 
 type EspParam struct {
@@ -46,20 +46,22 @@ func New(c EspClient) *EspClient {
 		svc := ssm.New()
 		c.Client = svc
 	}
+
+	c.Client.Init()
 	return &c
 }
 
 // getParam Queries the ssm param
 func (c *EspClient) GetParam(debug bool, key string) EspParam {
-	in := &GetOneInput{
+	in := GetOneInput{
 		Name: key,
 		Decrypt: debug,
 	}
-	param := c.Client.GetOne(in)
+	param, err := c.Client.GetOne(in)
 	if err != nil {
-		errors.CheckSSMGetParameters(err)
+		fmt.Println(err)
 	}
 
-	return resp.Parameter
+	return param
 }
 

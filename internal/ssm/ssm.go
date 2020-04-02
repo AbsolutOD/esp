@@ -5,7 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	awsssm "github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/pinpt/esp/internal/client"
-	"github.com/pinpt/esp/internal/errors"
+	"github.com/absolutod/esp/internal/errors"
 	"os"
 )
 
@@ -54,10 +54,8 @@ func New() *Service {
 	svc := new(Service)
 	svc.Region = os.Getenv("AWS_REGION")
 	svc.Cfg = aws.Config{ Region: aws.String(svc.Region) }
+	svc.session = session.Must(session.NewSession(&s.Cfg))
+	svc.Svc = awsssm.New(s.session)
 	return svc
 }
 
-func (s *Service) Init() {
-	s.session = session.Must(session.NewSession(&s.Cfg))
-	s.Svc = awsssm.New(s.session)
-}
