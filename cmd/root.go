@@ -44,8 +44,6 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&awsProfile, "profile", profile, "Set the AWS profile to use.")
 	rootCmd.PersistentFlags().StringVar(&awsRegion, "region", region, "Set the AWS region to use.")
 
-	rootCmd.PersistentFlags().BoolP("decrypt", "d", false, "Decrypt SSM secure strings.")
-
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
