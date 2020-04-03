@@ -8,6 +8,16 @@ import (
 	"os"
 )
 
+func CheckSSMError(a action, err error)  {
+	CheckBaseSSMErrors(err)
+	switch a {
+	case Get:
+		CheckSSMGetParameterError(err)
+	case Save:
+		CheckSSMPutParameterError(err)
+	}
+}
+
 func CheckRegion(err error) {
 	if awsErr, ok := err.(awserr.Error); ok {
 		switch  awsErr.Code() {
@@ -18,43 +28,66 @@ func CheckRegion(err error) {
 	}
 }
 
-func CheckSSMGetParameters(err error) {
-	var errstr string = "foo"
+func CheckBaseSSMErrors(err error) {
 	if awsErr, ok := err.(awserr.Error); ok {
 		switch awsErr.Code() {
 		case awsssm.ErrCodeInvalidKeyId:
-			errstr = awsErr.Error()
+			fmt.Println("SSM Error: %s", awsErr.Error())
+			os.Exit(1)
 		case awsssm.ErrCodeInternalServerError:
-			errstr = awsErr.Error()
+			fmt.Println("SSM Error: %s", awsErr.Error())
+			os.Exit(1)
 		default:
-			errstr = awsErr.Code()
 			CheckRegion(err)
 		}
-		fmt.Printf("SSM Get Parameters Error: %s\n", errstr)
-		os.Exit(1)
 	}
-
-	/*if awsType, ok := err.(awsssm.ParameterNotFound); ok {
-	}*/
-
-
 }
-
-func CheckSSMError(err error) {
-	var errstr string
-
+func CheckSSMGetParameterError(err error) {
 	if awsErr, ok := err.(awserr.Error); ok {
 		switch awsErr.Code() {
-		case awsssm.ErrCodeInternalServerError:
-			errstr = awsErr.Error()
-		case awsssm.ErrCodeInvalidKeyId:
-			errstr = awsErr.Error()
 		case awsssm.ErrCodeParameterNotFound:
-			errstr = awsErr.Error()
-		case awsssm.ErrCodeParameterVersionNotFound:
-			errstr = awsErr.Error()
+			fmt.Println("SSM Error: %s", awsErr.Error())
+			os.Exit(1)
+		default:
+			CheckRegion(err)
 		}
-		fmt.Printf("Error: %s", errstr)
+	}
+}
+
+func CheckSSMPutParameterError(err error) {
+	if awsErr, ok := err.(awserr.Error); ok {
+		switch awsErr.Code() {
+		case awsssm.ErrCodeParameterLimitExceeded:
+			fmt.Println("SSM Error: %s", awsErr.Error())
+			os.Exit(1)
+		case awsssm.ErrCodeTooManyUpdates:
+			fmt.Println("SSM Error: %s", awsErr.Error())
+			os.Exit(1)
+		case awsssm.ErrCodeHierarchyTypeMismatchException:
+			fmt.Println("SSM Error: %s", awsErr.Error())
+			os.Exit(1)
+		case awsssm.ErrCodeInvalidAllowedPatternException:
+			fmt.Println("SSM Error: %s", awsErr.Error())
+			os.Exit(1)
+		case awsssm.ErrCodeParameterMaxVersionLimitExceeded:
+			fmt.Println("SSM Error: %s", awsErr.Error())
+			os.Exit(1)
+		case awsssm.ErrCodeUnsupportedParameterType:
+			fmt.Println("SSM Error: %s", awsErr.Error())
+			os.Exit(1)
+		case awsssm.ErrCodePoliciesLimitExceededException:
+			fmt.Println("SSM Error: %s", awsErr.Error())
+			os.Exit(1)
+		case awsssm.ErrCodeInvalidPolicyTypeException:
+			fmt.Println("SSM Error: %s", awsErr.Error())
+			os.Exit(1)
+		case awsssm.ErrCodeInvalidPolicyAttributeException:
+			fmt.Println("SSM Error: %s", awsErr.Error())
+			os.Exit(1)
+		case awsssm.ErrCodeIncompatiblePolicyException:
+			fmt.Println("SSM Error: %s", awsErr.Error())
+			os.Exit(1)
+		}
 	}
 }
 

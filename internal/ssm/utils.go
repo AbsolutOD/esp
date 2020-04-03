@@ -3,6 +3,7 @@ package ssm
 import (
 	"errors"
 	"github.com/absolutod/esp/internal/common"
+	"github.com/aws/aws-sdk-go/aws"
 	awsssm "github.com/aws/aws-sdk-go/service/ssm"
 )
 
@@ -29,6 +30,14 @@ func (p *AwsParam) IsValid() error {
 		return nil
 	}
 	return errors.New("invalid SSM Parameter Type")
+}
+
+func SelectType(t bool) *string {
+	if t {
+		return aws.String(awsssm.ParameterTypeString)
+	} else {
+		return aws.String(awsssm.ParameterTypeSecureString)
+	}
 }
 
 func ConvertToEspParam(ap *awsssm.GetParameterOutput) common.EspParam {

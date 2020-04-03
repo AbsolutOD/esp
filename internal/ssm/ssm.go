@@ -8,6 +8,15 @@ import (
 	"github.com/absolutod/esp/internal/common"
 )
 
+type action string
+
+const (
+	Get action = "get"
+	GetMany action = "getMany"
+	Put action = "put"
+	Save action = "save"
+)
+
 type Service struct {
 	Svc *awsssm.SSM
 	Region string
@@ -15,8 +24,17 @@ type Service struct {
 	session *session.Session
 }
 
-func (s *Service) Save(p common.EspParam) (common.EspParam, error) {
-	panic("implement me")
+func (s *Service) Save(p common.EspParamInput) common.SaveOutput {
+	pi := &awsssm.PutParameterInput{
+		Type: SelectType(p.Secure),
+		Name: aws.String(p.Name),
+		Value: aws.String(p.Value),
+	}
+	param, err := s.Svc.PutParameter(pi)
+	if err != nil {
+		CheckSSMError(Save, err)
+	}
+	return common.SaveOutput{ Version: *param.Version }
 }
 
 func (s *Service) GetOne(p common.GetOneInput) common.EspParam {
@@ -26,7 +44,7 @@ func (s *Service) GetOne(p common.GetOneInput) common.EspParam {
 	}
 	resp, err := s.Svc.GetParameter(si)
 	if err != nil {
-		CheckSSMGetParameters(err)
+		CheckSSMError(Get, err)
 	}
 	param := ConvertToEspParam(resp)
 	return param

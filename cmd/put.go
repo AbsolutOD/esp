@@ -15,30 +15,32 @@ limitations under the License.
 */
 package cmd
 
-/*import (
-	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
+import (
+	"github.com/absolutod/esp/internal/common"
 
-	"github.com/pinpt/esp/internal/client"
+	"github.com/absolutod/esp/internal/client"
 	"github.com/spf13/cobra"
 )
 
 // putCmd represents the put command
 var putCmd = &cobra.Command{
 	Use:   "put",
-	Args:  cobra.MinimumNArgs(2),
+	//Args:  cobra.MinimumNArgs(2),
 	Short: "Creates an SSM parameter with the given value.",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Long: `Simple command to add values to SSM parameter store.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		region, _ := cmd.Flags().GetString("region")
-		ec := client.New(region)
-		fmt.Println("put called")
-		ec.
+		ec := client.New(client.EspClient{ Backend: "ssm" })
+		path, _ := cmd.Flags().GetString("path")
+		name, _ := cmd.Flags().GetString("name")
+		secure, _ := cmd.Flags().GetBool("secure")
+		value, _ := cmd.Flags().GetString("value")
+		param := common.EspParamInput{
+			Path:   path,
+			Name:   name,
+			Secure: secure,
+			Value:  value,
+		}
+		ec.Save(param)
 
 	},
 }
@@ -55,7 +57,8 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// putCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	putCmd.Flags().String("path", "p", "Define the path for the SSM parameter")
-	putCmd.Flags().String("value", "v", "The value to be stored in the SSM.")
-	putCmd.Flags().BoolP("secure", "s", false, "Sets the SSM parameter type to 'SecureString'")
-}*/
+	putCmd.Flags().StringP("name", "n", "", "The name for your parameter.")
+	putCmd.Flags().StringP("path", "p", "", "Define the path for the SSM parameter.")
+	putCmd.Flags().StringP("value", "v", "", "The value to be stored in the SSM.")
+	putCmd.Flags().BoolP("secure", "s", false, "Sets the SSM parameter type to 'SecureString'.")
+}

@@ -8,7 +8,7 @@ import (
 type Backend string
 
 type Client interface {
-	Save(p common.EspParam) (common.EspParam, error)
+	Save(p common.EspParamInput) common.SaveOutput
 	GetOne(p common.GetOneInput) common.EspParam
 }
 
@@ -36,3 +36,7 @@ func (c *EspClient) GetParam(debug bool, key string) common.EspParam {
 	return param
 }
 
+func (c *EspClient) Save(p common.EspParamInput) common.SaveOutput {
+	param := c.Client.Save(p)
+	return param
+}

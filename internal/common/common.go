@@ -25,3 +25,6 @@ type GetOneInput struct {
 	Decrypt bool
 }
 
+type SaveOutput struct {
+	Version int64
+}
