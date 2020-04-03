@@ -15,7 +15,7 @@ limitations under the License.
 */
 package cmd
 
-import (
+/*import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 
@@ -58,4 +58,4 @@ func init() {
 	putCmd.Flags().String("path", "p", "Define the path for the SSM parameter")
 	putCmd.Flags().String("value", "v", "The value to be stored in the SSM.")
 	putCmd.Flags().BoolP("secure", "s", false, "Sets the SSM parameter type to 'SecureString'")
-}
+}*/

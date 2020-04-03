@@ -1,6 +1,6 @@
 package cmd
 
-import (
+/*import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-/*func getParamsByPath(ec client.EspConfig, d bool, path string) []*ssm.Parameter {
+func getParamsByPath(ec client.EspConfig, d bool, path string) []*ssm.Parameter {
 	si := &ssm.GetParametersByPathInput{
 		Path:           aws.String(path),
 		WithDecryption: aws.Bool(d),

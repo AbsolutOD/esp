@@ -1,38 +1,15 @@
 package client
 
 import (
-	"fmt"
+	"github.com/absolutod/esp/internal/common"
 	"github.com/absolutod/esp/internal/ssm"
 )
 
 type Backend string
 
 type Client interface {
-	Save(p EspParam) (EspParam, error)
-	GetOne(p GetOneInput) (EspParam, error)
-}
-
-type EspParam struct {
-	Id string
-	Name string
-	Path string
-	Type string
-	Secure bool
-	Value string
-	Version int
-	LastModifiedDate float32
-}
-
-type EspParamInput struct {
-	Path string
-	Name string
-	Secure bool
-	Value string
-}
-
-type GetOneInput struct {
-	Name string
-	Decrypt bool
+	Save(p common.EspParam) (common.EspParam, error)
+	GetOne(p common.GetOneInput) (common.EspParam, error)
 }
 
 type EspClient struct {
@@ -49,8 +26,8 @@ func New(c EspClient) *EspClient {
 }
 
 // getParam Queries the ssm param
-func (c *EspClient) GetParam(debug bool, key string) EspParam {
-	in := GetOneInput{
+func (c *EspClient) GetParam(debug bool, key string) common.EspParam {
+	in := common.GetOneInput{
 		Name: key,
 		Decrypt: debug,
 	}

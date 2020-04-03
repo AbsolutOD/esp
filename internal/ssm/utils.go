@@ -2,8 +2,8 @@ package ssm
 
 import (
 	"errors"
+	"github.com/absolutod/esp/internal/common"
 	awsssm "github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/absolutod/esp/internal/client"
 )
 
 type ParamType string
@@ -31,6 +31,18 @@ func (p *AwsParam) IsValid() error {
 	return errors.New("invalid SSM Parameter Type")
 }
 
-func ConvertToEspParam(ap *awsssm.GetParameterOutput) client.EspParam {
+func ConvertToEspParam(ap *awsssm.GetParameterOutput) common.EspParam {
+	param := common.EspParam{
+		Id: *ap.Parameter.ARN,
+		Name: *ap.Parameter.Name,
+		Type: *ap.Parameter.Type,
+		Value: *ap.Parameter.Value,
+		Version: *ap.Parameter.Version,
+		LastModifiedDate: *ap.Parameter.LastModifiedDate,
+	}
 
+	if param.Type == "securestring" {
+		param.Secure = true
+	}
+	return param
 }

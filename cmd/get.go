@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/absolutod/esp/internal/common"
 	"os"
 
 	"github.com/logrusorgru/aurora"
@@ -10,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func display(p client.EspParam, detail bool) {
+func display(p common.EspParam, detail bool) {
 	if detail {
 		detailDisplay(p)
 	} else {
@@ -18,12 +19,12 @@ func display(p client.EspParam, detail bool) {
 	}
 }
 
-func displayParam(p client.EspParam) {
+func displayParam(p common.EspParam) {
 	name := aurora.BrightYellow(p.Name)
 	fmt.Printf("%s: %s\n", name, p.Value)
 }
 
-func detailDisplay(p client.EspParam) {
+func detailDisplay(p common.EspParam) {
 	data := [][]string{
 		[]string{aurora.BrightYellow("ID").String(), p.Id},
 		[]string{aurora.BrightYellow("Last_Modified").String(), p.LastModifiedDate.String()},
