@@ -9,7 +9,7 @@ type Backend string
 
 type Client interface {
 	Save(p common.EspParam) (common.EspParam, error)
-	GetOne(p common.GetOneInput) (common.EspParam, error)
+	GetOne(p common.GetOneInput) common.EspParam
 }
 
 type EspClient struct {
@@ -31,11 +31,7 @@ func (c *EspClient) GetParam(debug bool, key string) common.EspParam {
 		Name: key,
 		Decrypt: debug,
 	}
-	param, err := c.Client.GetOne(in)
-	if err != nil {
-		panic(err)
-		//fmt.Println(err)
-	}
+	param := c.Client.GetOne(in)
 
 	return param
 }
