@@ -2,8 +2,7 @@ package client
 
 import (
 	"fmt"
-	"github.com/absolutod/esp/internal/errors"
-	"github.com/pinpt/esp/internal/ssm"
+	"github.com/absolutod/esp/internal/ssm"
 )
 
 type Backend string
@@ -46,8 +45,6 @@ func New(c EspClient) *EspClient {
 		svc := ssm.New()
 		c.Client = svc
 	}
-
-	c.Client.Init()
 	return &c
 }
 
@@ -59,7 +56,8 @@ func (c *EspClient) GetParam(debug bool, key string) EspParam {
 	}
 	param, err := c.Client.GetOne(in)
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
+		//fmt.Println(err)
 	}
 
 	return param

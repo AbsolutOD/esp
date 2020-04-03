@@ -6,13 +6,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/logrusorgru/aurora"
-	"github.com/pinpt/esp/internal/client"
-	"github.com/pinpt/esp/internal/errors"
+	"github.com/absolutod/esp/internal/client"
 
 	"github.com/spf13/cobra"
 )
 
-func getParamsByPath(ec client.EspConfig, d bool, path string) []*ssm.Parameter {
+/*func getParamsByPath(ec client.EspConfig, d bool, path string) []*ssm.Parameter {
 	si := &ssm.GetParametersByPathInput{
 		Path:           aws.String(path),
 		WithDecryption: aws.Bool(d),
@@ -62,4 +61,4 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// listCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
+}*/

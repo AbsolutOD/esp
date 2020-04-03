@@ -3,7 +3,7 @@ package ssm
 import (
 	"errors"
 	awsssm "github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/pinpt/esp/internal/client"
+	"github.com/absolutod/esp/internal/client"
 )
 
 type ParamType string

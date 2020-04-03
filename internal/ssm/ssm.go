@@ -1,11 +1,11 @@
 package ssm
 
 import (
+	"errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	awsssm "github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/pinpt/esp/internal/client"
-	"github.com/absolutod/esp/internal/errors"
+	"github.com/absolutod/esp/internal/client"
 	"os"
 )
 
@@ -22,13 +22,14 @@ func (s *Service) Save(p client.EspParam) (client.EspParam, error) {
 
 func (s *Service) GetOne(p client.GetOneInput) (client.EspParam, error) {
 	si := &awsssm.GetParameterInput{
-		Name: aws.String(p.Path),
+		Name: aws.String(p.Name),
 		WithDecryption: aws.Bool(p.Decrypt),
 	}
 	resp, err := s.Svc.GetParameter(si)
 	if err != nil {
-		CheckSSMGetParameters(err)
-		return client.EspParam{}, errors.New("")
+		return client.EspParam{}, errors.New("fubar error")
+		//CheckSSMGetParameters(err)
+		//return client.EspParam{}, errors.New("Error Getting the ssm parameter")
 	}
 	param := ConvertToEspParam(resp)
 	return param, nil
@@ -54,8 +55,7 @@ func New() *Service {
 	svc := new(Service)
 	svc.Region = os.Getenv("AWS_REGION")
 	svc.Cfg = aws.Config{ Region: aws.String(svc.Region) }
-	svc.session = session.Must(session.NewSession(&s.Cfg))
-	svc.Svc = awsssm.New(s.session)
+	svc.session = session.Must(session.NewSession(&svc.Cfg))
+	svc.Svc = awsssm.New(svc.session)
 	return svc
 }
-

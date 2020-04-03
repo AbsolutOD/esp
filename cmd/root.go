@@ -5,7 +5,7 @@ import (
 	"os"
 
 	homedir "github.com/mitchellh/go-homedir"
-	"github.com/pinpt/esp/internal/utility"
+	"github.com/absolutod/esp/internal/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -39,8 +39,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.esp.yaml)")
 
 	// set AWS Profile
-	profile := utility.GetEnv("AWS_PROFILE", "default")
-	region := utility.GetEnv("AWS_REGION", "us-east-1")
+	profile := utils.GetEnv("AWS_PROFILE", "default")
+	region := utils.GetEnv("AWS_REGION", "us-east-1")
 	rootCmd.PersistentFlags().StringVar(&awsProfile, "profile", profile, "Set the AWS profile to use.")
 	rootCmd.PersistentFlags().StringVar(&awsRegion, "region", region, "Set the AWS region to use.")
 

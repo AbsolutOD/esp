@@ -6,7 +6,7 @@ import (
 
 	"github.com/logrusorgru/aurora"
 	"github.com/olekukonko/tablewriter"
-	"github.com/pinpt/esp/internal/client"
+	"github.com/absolutod/esp/internal/client"
 	"github.com/spf13/cobra"
 )
 
