@@ -34,20 +34,20 @@ func (p *AwsParam) IsValid() error {
 
 func SelectType(t bool) *string {
 	if t {
-		return aws.String(awsssm.ParameterTypeString)
-	} else {
 		return aws.String(awsssm.ParameterTypeSecureString)
+	} else {
+		return aws.String(awsssm.ParameterTypeString)
 	}
 }
 
-func ConvertToEspParam(ap *awsssm.GetParameterOutput) common.EspParam {
+func ConvertToEspParam(ap *awsssm.Parameter) common.EspParam {
 	param := common.EspParam{
-		Id: *ap.Parameter.ARN,
-		Name: *ap.Parameter.Name,
-		Type: *ap.Parameter.Type,
-		Value: *ap.Parameter.Value,
-		Version: *ap.Parameter.Version,
-		LastModifiedDate: *ap.Parameter.LastModifiedDate,
+		Id: *ap.ARN,
+		Name: *ap.Name,
+		Type: *ap.Type,
+		Value: *ap.Value,
+		Version: *ap.Version,
+		LastModifiedDate: *ap.LastModifiedDate,
 	}
 
 	if param.Type == "securestring" {

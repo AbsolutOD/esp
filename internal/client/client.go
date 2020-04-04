@@ -10,6 +10,7 @@ type Backend string
 type Client interface {
 	Save(p common.EspParamInput) common.SaveOutput
 	GetOne(p common.GetOneInput) common.EspParam
+	GetMany(p common.ListParamInput) []common.EspParam
 }
 
 type EspClient struct {
@@ -26,14 +27,19 @@ func New(c EspClient) *EspClient {
 }
 
 // getParam Queries the ssm param
-func (c *EspClient) GetParam(debug bool, key string) common.EspParam {
+func (c *EspClient) GetParam(decrypt bool, key string) common.EspParam {
 	in := common.GetOneInput{
 		Name: key,
-		Decrypt: debug,
+		Decrypt: decrypt,
 	}
 	param := c.Client.GetOne(in)
 
 	return param
+}
+
+func (c *EspClient) ListParams(p common.ListParamInput) []common.EspParam {
+	params := c.Client.GetMany(p)
+	return params
 }
 
 func (c *EspClient) Save(p common.EspParamInput) common.SaveOutput {

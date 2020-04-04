@@ -46,8 +46,26 @@ func (s *Service) GetOne(p common.GetOneInput) common.EspParam {
 	if err != nil {
 		CheckSSMError(Get, err)
 	}
-	param := ConvertToEspParam(resp)
+	param := ConvertToEspParam(resp.Parameter)
 	return param
+}
+
+func (s *Service) GetMany(p common.ListParamInput) []common.EspParam {
+	si := &awsssm.GetParametersByPathInput{
+		Path:           aws.String(p.Path),
+		WithDecryption: aws.Bool(p.Decrypt),
+	}
+	params, err := s.Svc.GetParametersByPath(si)
+	if err != nil {
+		CheckSSMByPathError(err)
+	}
+
+	var espParams []common.EspParam
+	for _, v := range params.Parameters {
+		espParams = append(espParams, ConvertToEspParam(v))
+	}
+
+	return espParams
 }
 
 /*func GetMany(ec common.EspConfig, d bool, paths []*string) []*ssm.Parameter {

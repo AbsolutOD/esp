@@ -28,3 +28,8 @@ type GetOneInput struct {
 type SaveOutput struct {
 	Version int64
 }
+
+type ListParamInput struct {
+	Path string
+	Decrypt bool
+}

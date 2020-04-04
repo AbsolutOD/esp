@@ -91,23 +91,27 @@ func CheckSSMPutParameterError(err error) {
 	}
 }
 
-func CheckSSMByPath(err error) {
-	var errstr string
+func CheckSSMByPathError(err error) {
 	if awsErr, ok := err.(awserr.Error); ok {
 		switch awsErr.Code() {
 		case awsssm.ErrCodeInternalServerError:
-			errstr = awsErr.Error()
+			fmt.Println("SSM Error: %s", awsErr.Error())
+			os.Exit(1)
 		case awsssm.ErrCodeInvalidFilterKey:
-			errstr = awsErr.Error()
+			fmt.Println("SSM Error: %s", awsErr.Error())
+			os.Exit(1)
 		case awsssm.ErrCodeInvalidFilterOption:
-			errstr = awsErr.Error()
+			fmt.Println("SSM Error: %s", awsErr.Error())
+			os.Exit(1)
 		case awsssm.ErrCodeInvalidFilterValue:
-			errstr = awsErr.Error()
+			fmt.Println("SSM Error: %s", awsErr.Error())
+			os.Exit(1)
 		case awsssm.ErrCodeInvalidKeyId:
-			errstr = awsErr.Error()
+			fmt.Println("SSM Error: %s", awsErr.Error())
+			os.Exit(1)
 		case awsssm.ErrCodeInvalidNextToken:
-			errstr = awsErr.Error()
+			fmt.Println("SSM Error: %s", awsErr.Error())
+			os.Exit(1)
 		}
-		fmt.Printf("SSM By Path Error: %s", errstr)
 	}
 }
