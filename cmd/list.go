@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/absolutod/esp/internal/common"
+	"github.com/pinpt/esp/internal/common"
 
-	"github.com/absolutod/esp/internal/client"
+	"github.com/pinpt/esp/internal/client"
 	"github.com/logrusorgru/aurora"
 
 	"github.com/spf13/cobra"

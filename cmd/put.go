@@ -16,9 +16,9 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/absolutod/esp/internal/common"
+	"github.com/pinpt/esp/internal/common"
 
-	"github.com/absolutod/esp/internal/client"
+	"github.com/pinpt/esp/internal/client"
 	"github.com/spf13/cobra"
 )
 

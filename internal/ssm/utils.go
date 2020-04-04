@@ -2,7 +2,7 @@ package ssm
 
 import (
 	"errors"
-	"github.com/absolutod/esp/internal/common"
+	"github.com/pinpt/esp/internal/common"
 	"github.com/aws/aws-sdk-go/aws"
 	awsssm "github.com/aws/aws-sdk-go/service/ssm"
 )

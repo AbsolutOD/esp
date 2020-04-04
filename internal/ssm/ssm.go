@@ -1,11 +1,11 @@
 package ssm
 
 import (
-	"github.com/absolutod/esp/internal/utils"
+	"github.com/pinpt/esp/internal/utils"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	awsssm "github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/absolutod/esp/internal/common"
+	"github.com/pinpt/esp/internal/common"
 )
 
 type action string

@@ -1,8 +1,8 @@
 package client
 
 import (
-	"github.com/absolutod/esp/internal/common"
-	"github.com/absolutod/esp/internal/ssm"
+	"github.com/pinpt/esp/internal/common"
+	"github.com/pinpt/esp/internal/ssm"
 )
 
 type Backend string
