@@ -39,7 +39,7 @@ func detailDisplay(p common.EspParam) {
 	table.Render()
 }
 
-// getCmd represents the path command
+// getCmd gets the parameter from the backend store
 var getCmd = &cobra.Command{
 	Use:   "get [path]",
 	Short: "Query path for SSM",

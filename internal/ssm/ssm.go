@@ -1,11 +1,13 @@
 package ssm
 
 import (
+	"fmt"
 	"github.com/pinpt/esp/internal/utils"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	awsssm "github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/pinpt/esp/internal/common"
+	"os"
 )
 
 type action string
@@ -32,7 +34,9 @@ func (s *Service) Save(p common.EspParamInput) common.SaveOutput {
 	}
 	param, err := s.Svc.PutParameter(pi)
 	if err != nil {
-		CheckSSMError(Save, err)
+		awsErr := CheckSSMError(Save, err)
+		fmt.Println("SSM Error: %s", awsErr.Error())
+		os.Exit(1)
 	}
 	return common.SaveOutput{ Version: *param.Version }
 }
@@ -44,7 +48,9 @@ func (s *Service) GetOne(p common.GetOneInput) common.EspParam {
 	}
 	resp, err := s.Svc.GetParameter(si)
 	if err != nil {
-		CheckSSMError(Get, err)
+		awsErr := CheckSSMError(Get, err)
+		fmt.Println("SSM Error: %s", awsErr.Error())
+		os.Exit(1)
 	}
 	param := ConvertToEspParam(resp.Parameter)
 	return param
@@ -57,7 +63,9 @@ func (s *Service) GetMany(p common.ListParamInput) []common.EspParam {
 	}
 	params, err := s.Svc.GetParametersByPath(si)
 	if err != nil {
-		CheckSSMByPathError(err)
+		awsErr := CheckSSMError(GetMany, err)
+		fmt.Println("SSM Error: %s", awsErr.Error())
+		os.Exit(1)
 	}
 
 	var espParams []common.EspParam
@@ -68,27 +76,16 @@ func (s *Service) GetMany(p common.ListParamInput) []common.EspParam {
 	return espParams
 }
 
-/*func GetMany(ec common.EspConfig, d bool, paths []*string) []*ssm.Parameter {
-
-	si := &ssm.GetParametersInput{
-		Names: paths,
-		WithDecryption: aws.Bool(d),
-	}
-	fmt.Println(si)
-	resp, err := ec.Svc.GetParameters(si)
-	if err != nil {
-		fmt.Println(err)
-		errors.CheckSSMGetParameters(err)
-	}
-	return resp.Parameters
-}*/
-
-// actually create the ssm common
+// New Create a new SSM service
 func New() *Service {
 	svc := new(Service)
 	svc.Region = utils.GetEnv("AWS_REGION", "us-east-1")
 	svc.Cfg = aws.Config{ Region: aws.String(svc.Region) }
-	svc.session = session.Must(session.NewSession(&svc.Cfg))
-	svc.Svc = awsssm.New(svc.session)
 	return svc
+}
+
+// Init create the actual session to talk to the AWS API
+func (s *Service) Init()  {
+	s.session = session.Must(session.NewSession(&s.Cfg))
+	s.Svc = awsssm.New(s.session)
 }

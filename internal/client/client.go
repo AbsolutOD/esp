@@ -21,28 +21,29 @@ type EspClient struct {
 func New(c EspClient) *EspClient {
 	if c.Backend == "ssm" {
 		svc := ssm.New()
+		svc.Init()
 		c.Client = svc
+	} else {
+		panic("Currently only the ssm backend is valid.")
 	}
 	return &c
 }
 
-// getParam Queries the ssm param
+// GetParam Queries the ssm param
 func (c *EspClient) GetParam(decrypt bool, key string) common.EspParam {
 	in := common.GetOneInput{
 		Name: key,
 		Decrypt: decrypt,
 	}
-	param := c.Client.GetOne(in)
-
-	return param
+	return c.Client.GetOne(in)
 }
 
+// ListParams takes a path and returns all of the parameters under it
 func (c *EspClient) ListParams(p common.ListParamInput) []common.EspParam {
-	params := c.Client.GetMany(p)
-	return params
+	return c.Client.GetMany(p)
 }
 
+// Save stores the parameter in the configured backend
 func (c *EspClient) Save(p common.EspParamInput) common.SaveOutput {
-	param := c.Client.Save(p)
-	return param
+	return c.Client.Save(p)
 }

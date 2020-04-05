@@ -1,117 +1,102 @@
 package ssm
 
 import (
-	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	awsssm "github.com/aws/aws-sdk-go/service/ssm"
-	"os"
 )
 
-func CheckSSMError(a action, err error)  {
-	CheckBaseSSMErrors(err)
+// CheckSSMError is the entry point for check all of the based and call specific errors
+func CheckSSMError(a action, err error) error {
+	awsErr := CheckBaseSSMErrors(err)
+	if awsErr != nil {
+		return awsErr
+	}
 	switch a {
 	case Get:
-		CheckSSMGetParameterError(err)
+		return CheckSSMGetParameterError(err)
 	case Save:
-		CheckSSMPutParameterError(err)
+		return CheckSSMPutParameterError(err)
 	}
 }
 
-func CheckRegion(err error) {
+// CheckRegion catches if the aws region isn't configured
+func CheckRegion(err error) error {
 	if awsErr, ok := err.(awserr.Error); ok {
 		switch  awsErr.Code() {
 		case "MissingRegion":
-			fmt.Println(aws.ErrMissingRegion)
-			os.Exit(1)
+			return awsErr
 		}
 	}
 }
 
-func CheckBaseSSMErrors(err error) {
+// CheckBaseSSMErrors checks for the common errors all SSM API calls might return
+func CheckBaseSSMErrors(err error) error {
 	if awsErr, ok := err.(awserr.Error); ok {
 		switch awsErr.Code() {
 		case awsssm.ErrCodeInvalidKeyId:
-			fmt.Println("SSM Error: %s", awsErr.Error())
-			os.Exit(1)
+			return awsErr
 		case awsssm.ErrCodeInternalServerError:
-			fmt.Println("SSM Error: %s", awsErr.Error())
-			os.Exit(1)
+			return awsErr
 		default:
-			CheckRegion(err)
+			return CheckRegion(err)
 		}
 	}
 }
-func CheckSSMGetParameterError(err error) {
+
+// CheckSSMGetParameterError checks for errors the GetParameter API call might return
+func CheckSSMGetParameterError(err error) error {
 	if awsErr, ok := err.(awserr.Error); ok {
 		switch awsErr.Code() {
 		case awsssm.ErrCodeParameterNotFound:
-			fmt.Println("SSM Error: %s", awsErr.Error())
-			os.Exit(1)
-		default:
-			CheckRegion(err)
+			return awsErr
 		}
 	}
 }
 
-func CheckSSMPutParameterError(err error) {
+// CheckSSMPutParameterError checks for errors the PutParameter API call might return
+func CheckSSMPutParameterError(err error) error {
 	if awsErr, ok := err.(awserr.Error); ok {
 		switch awsErr.Code() {
 		case awsssm.ErrCodeParameterLimitExceeded:
-			fmt.Println("SSM Error: %s", awsErr.Error())
-			os.Exit(1)
+			return awsErr
 		case awsssm.ErrCodeTooManyUpdates:
-			fmt.Println("SSM Error: %s", awsErr.Error())
-			os.Exit(1)
+			return awsErr
 		case awsssm.ErrCodeHierarchyTypeMismatchException:
-			fmt.Println("SSM Error: %s", awsErr.Error())
-			os.Exit(1)
+			return awsErr
 		case awsssm.ErrCodeInvalidAllowedPatternException:
-			fmt.Println("SSM Error: %s", awsErr.Error())
-			os.Exit(1)
+			return awsErr
 		case awsssm.ErrCodeParameterMaxVersionLimitExceeded:
-			fmt.Println("SSM Error: %s", awsErr.Error())
-			os.Exit(1)
+			return awsErr
 		case awsssm.ErrCodeUnsupportedParameterType:
-			fmt.Println("SSM Error: %s", awsErr.Error())
-			os.Exit(1)
+			return awsErr
 		case awsssm.ErrCodePoliciesLimitExceededException:
-			fmt.Println("SSM Error: %s", awsErr.Error())
-			os.Exit(1)
+			return awsErr
 		case awsssm.ErrCodeInvalidPolicyTypeException:
-			fmt.Println("SSM Error: %s", awsErr.Error())
-			os.Exit(1)
+			return awsErr
 		case awsssm.ErrCodeInvalidPolicyAttributeException:
-			fmt.Println("SSM Error: %s", awsErr.Error())
-			os.Exit(1)
+			return awsErr
 		case awsssm.ErrCodeIncompatiblePolicyException:
-			fmt.Println("SSM Error: %s", awsErr.Error())
-			os.Exit(1)
+			return awsErr
 		}
 	}
 }
 
-func CheckSSMByPathError(err error) {
+// CheckSSMByPathError checks for errors the GetParameterByPath API call might return
+func CheckSSMByPathError(err error) error {
 	if awsErr, ok := err.(awserr.Error); ok {
 		switch awsErr.Code() {
 		case awsssm.ErrCodeInternalServerError:
-			fmt.Println("SSM Error: %s", awsErr.Error())
-			os.Exit(1)
+			return awsErr
 		case awsssm.ErrCodeInvalidFilterKey:
-			fmt.Println("SSM Error: %s", awsErr.Error())
-			os.Exit(1)
+			return awsErr
 		case awsssm.ErrCodeInvalidFilterOption:
-			fmt.Println("SSM Error: %s", awsErr.Error())
-			os.Exit(1)
+			return awsErr
 		case awsssm.ErrCodeInvalidFilterValue:
-			fmt.Println("SSM Error: %s", awsErr.Error())
-			os.Exit(1)
+			return awsErr
 		case awsssm.ErrCodeInvalidKeyId:
-			fmt.Println("SSM Error: %s", awsErr.Error())
-			os.Exit(1)
+			return awsErr
 		case awsssm.ErrCodeInvalidNextToken:
-			fmt.Println("SSM Error: %s", awsErr.Error())
-			os.Exit(1)
+			return awsErr
 		}
 	}
 }
