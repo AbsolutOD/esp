@@ -1,48 +1,49 @@
 package client
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/pinpt/esp/internal/errors"
+	"github.com/pinpt/esp/internal/common"
+	"github.com/pinpt/esp/internal/ssm"
 )
 
-type EspConfig struct {
-	Svc *ssm.SSM
-	//Client ssmiface.SSMAPI
-	Region string
-	Cfg aws.Config
-	session *session.Session
+type Backend string
+
+type Client interface {
+	Save(p common.EspParamInput) common.SaveOutput
+	GetOne(p common.GetOneInput) common.EspParam
+	GetMany(p common.ListParamInput) []common.EspParam
 }
 
-func New(region string) EspConfig {
-	e := EspConfig{
-		Region: region,
-		Cfg: aws.Config{
-			Region: aws.String(region),
-		},
+type EspClient struct {
+	Backend Backend
+	Client Client
+}
+
+func New(c EspClient) *EspClient {
+	if c.Backend == "ssm" {
+		svc := ssm.New()
+		svc.Init()
+		c.Client = svc
+	} else {
+		panic("Currently only the ssm backend is valid.")
 	}
-	e.GetSsmClient()
-	return e
+	return &c
 }
 
-// actually create the ssm client
-func (e *EspConfig) GetSsmClient() {
-	e.session = session.Must(session.NewSession(&e.Cfg))
-	e.Svc = ssm.New(e.session)
-}
-
-// getParam Queries the ssm param
-func (e *EspConfig) getParam(d bool, key string) *ssm.Parameter {
-	si := &ssm.GetParameterInput{
-		Name: aws.String(key),
-		WithDecryption: aws.Bool(d),
+// GetParam Queries the ssm param
+func (c *EspClient) GetParam(decrypt bool, key string) common.EspParam {
+	in := common.GetOneInput{
+		Name: key,
+		Decrypt: decrypt,
 	}
-	resp, err := e.Svc.GetParameter(si)
-	if err != nil {
-		errors.CheckSSMGetParameters(err)
-	}
-
-	return resp.Parameter
+	return c.Client.GetOne(in)
 }
 
+// ListParams takes a path and returns all of the parameters under it
+func (c *EspClient) ListParams(p common.ListParamInput) []common.EspParam {
+	return c.Client.GetMany(p)
+}
+
+// Save stores the parameter in the configured backend
+func (c *EspClient) Save(p common.EspParamInput) common.SaveOutput {
+	return c.Client.Save(p)
+}
