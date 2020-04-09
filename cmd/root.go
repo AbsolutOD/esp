@@ -5,7 +5,7 @@ import (
 	"os"
 
 	homedir "github.com/mitchellh/go-homedir"
-	"github.com/pinpt/esp/internal/utility"
+	"github.com/pinpt/esp/internal/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -32,23 +32,13 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.esp.yaml)")
 
 	// set AWS Profile
-	profile := utility.GetEnv("AWS_PROFILE", "default")
-	region := utility.GetEnv("AWS_REGION", "us-east-1")
+	profile := utils.GetEnv("AWS_PROFILE", "default")
+	region := utils.GetEnv("AWS_REGION", "us-east-1")
 	rootCmd.PersistentFlags().StringVar(&awsProfile, "profile", profile, "Set the AWS profile to use.")
 	rootCmd.PersistentFlags().StringVar(&awsRegion, "region", region, "Set the AWS region to use.")
-
-	rootCmd.PersistentFlags().BoolP("decrypt", "d", false, "Decrypt SSM secure strings.")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 // initConfig reads in config file and ENV variables if set.
