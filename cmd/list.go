@@ -2,32 +2,18 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/pinpt/esp/internal/common"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/logrusorgru/aurora"
 	"github.com/pinpt/esp/internal/client"
-	"github.com/pinpt/esp/internal/errors"
+	"github.com/logrusorgru/aurora"
 
 	"github.com/spf13/cobra"
 )
 
-func getParamsByPath(ec client.EspConfig, d bool, path string) []*ssm.Parameter {
-	si := &ssm.GetParametersByPathInput{
-		Path:           aws.String(path),
-		WithDecryption: aws.Bool(d),
-	}
-	params, err := ec.Svc.GetParametersByPath(si)
-	if err != nil {
-		errors.CheckSSMByPath(err)
-	}
-	return params.Parameters
-}
-
-func displayParams(p []*ssm.Parameter) {
+func displayParams(p []common.EspParam) {
 	for _, param := range p {
-		name := aurora.BrightYellow(*param.Name)
-		fmt.Printf("%s: %s\n", name, *param.Value)
+		name := aurora.BrightYellow(param.Name)
+		fmt.Printf("%s: %s\n", name, param.Value)
 	}
 }
 
@@ -37,17 +23,18 @@ var listCmd = &cobra.Command{
 	Short: "Recursively list a SSM path.",
 	Long:  `The list command gives you an easy way to recursively get all SSM parameters with a base path.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		//fmt.Println("list called")
-		region, _ := cmd.Flags().GetString("region")
-		ec := client.New(region)
-		var params []*ssm.Parameter
+		ec := client.New(client.EspClient{Backend: "ssm"})
 		decrypt, _ := cmd.Flags().GetBool("decrypt")
-
-		params = getParamsByPath(ec, decrypt, args[0])
+		params := ec.ListParams(common.ListParamInput{
+			Path:    args[0],
+			Decrypt: decrypt,
+		})
 		displayParams(params)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(listCmd)
+
+	listCmd.Flags().BoolP("decrypt", "d", false, "Decrypt SSM secure strings.")
 }
