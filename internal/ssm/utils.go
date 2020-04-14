@@ -13,8 +13,8 @@ type ParamType string
 
 const(
 	String ParamType = "string"
-	SecureString ParamType = "securestring"
-	StringList ParamType = "stringlist"
+	SecureString ParamType = "SecureString"
+	StringList ParamType = "Stringlist"
 )
 
 type AwsParam struct {
@@ -34,7 +34,7 @@ func (p *AwsParam) isValid() error {
 	return errors.New("invalid SSM Parameter Type")
 }
 
-func SelectType(t bool) *string {
+func selectType(t bool) *string {
 	if t {
 		return aws.String(awsssm.ParameterTypeSecureString)
 	} else {
@@ -52,7 +52,7 @@ func convertToEspParam(ap *awsssm.Parameter) common.EspParam {
 		LastModifiedDate: *ap.LastModifiedDate,
 	}
 
-	if param.Type == "securestring" {
+	if param.Type == "SecureString" {
 		param.Secure = true
 	}
 	return param
@@ -65,8 +65,4 @@ func handleAwsErr(a action, err error) {
 		fmt.Printf("SSM Error: %s\n", awsErr.Error())
 		os.Exit(1)
 	}
-}
-
-func isSecureString()  {
-	
 }

@@ -27,7 +27,7 @@ type Service struct {
 
 func (s *Service) Save(p common.EspParamInput) common.SaveOutput {
 	pi := &awsssm.PutParameterInput{
-		Type: SelectType(p.Secure),
+		Type: selectType(p.Secure),
 		Name: aws.String(p.Name),
 		Value: aws.String(p.Value),
 	}
@@ -69,6 +69,22 @@ func (s *Service) GetMany(p common.ListParamInput) []common.EspParam {
 	return espParams
 }
 
+// Copy method copies the given parameter to a new location
+func (s *Service) Copy(cc common.CopyCommand) common.SaveOutput {
+	getOneInput := common.GetOneInput{
+		Name: cc.Source,
+		Decrypt: true,
+	}
+	sparam := s.GetOne(getOneInput)
+
+	dparam := common.EspParamInput{
+		Name:   cc.Destination,
+		Secure: sparam.Secure,
+		Value:  sparam.Value,
+	}
+	return s.Save(dparam)
+}
+
 // New Create a new SSM service
 func New() *Service {
 	svc := new(Service)
@@ -76,19 +92,6 @@ func New() *Service {
 	fmt.Printf("Region: %s\n", svc.Region)
 	svc.Cfg = aws.Config{ Region: aws.String(svc.Region) }
 	return svc
-}
-
-func (s *Service) Copy(cc common.CopyCommand) common.SaveOutput {
-	sparam := s.GetOne(common.GetOneInput{
-		Name: cc.Source,
-		Decrypt: true,
-	})
-	dparam := common.EspParamInput{
-		Name:   cc.Destination,
-		Secure: sparam.Secure,
-		Value:  sparam.Value,
-	}
-	return s.Save(dparam)
 }
 
 // Init create the actual session to talk to the AWS API
