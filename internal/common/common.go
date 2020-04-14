@@ -38,3 +38,8 @@ type ListParamInput struct {
 	Path string
 	Decrypt bool
 }
+
+type CopyCommand struct {
+	Source      string
+	Destination string
+}

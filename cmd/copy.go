@@ -1,44 +1,41 @@
 package cmd
 
-//var copyDescription = "Copy SSM value from an existing path to a new path.\n"
-
-/*type CopyCommand struct {
-	source      string
-	destination string
-}
-
-func (cc *CopyCommand) runCopy(region string) {
-	ec := client.New(region)
-	
-}*/
+import (
+	"fmt"
+	"github.com/pinpt/esp/internal/client"
+	"github.com/pinpt/esp/internal/common"
+	"github.com/spf13/cobra"
+	"os"
+)
 
 // cpCmd represents the cp command
-/*var copyCmd = &cobra.Command{
+var copyCmd = &cobra.Command{
 	Use:   "cp [OPTIONS] SRC_SSM_PATH DEST_SSM_PATH",
-	Aliases: []string{"cp"},
+	Aliases: []string{"copy"},
 	Short: "Copy a SSM Param from its current path to a new SSM Path",
 	Long: "Copy SSM value from an existing path to a new path.\n",
 	Args: cobra.ExactArgs(2),
-	RunE: func(cmd *cobra.Command, args []string) {
-		region, _ := cmd.Flags().GetString("region")
-		fmt.Println("cp called")
+	Run: func(cmd *cobra.Command, args []string) {
 		if args[0] == "" {
-			return fmt.Errorf("Source can not be empty")
+			fmt.Errorf("source can not be empty")
+			os.Exit(1)
 		}
 		if args[1] == "" {
-			return fmt.Errorf("Destination can not be empty")
+			fmt.Errorf("destination can not be empty")
+			os.Exit(1)
 		}
-		cc := &CopyCommand{
-			source:     args[0],
-			destination: args[1],
+		cc := common.CopyCommand{
+			Source:     args[0],
+			Destination: args[1],
 		}
-		return cc.runCopy(region)
+		ec := client.New(client.EspClient{ Backend: "ssm" })
+		ec.Copy(cc)
 	},
 	Example: "esp cp /ssm/path/key /ssm/new/path/key",
-}*/
+}
 
 func init() {
-	//rootCmd.AddCommand(copyCmd)
+	rootCmd.AddCommand(copyCmd)
 
 	// cpCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

@@ -50,7 +50,10 @@ var getCmd = &cobra.Command{
 		decrypt, _ := cmd.Flags().GetBool("decrypt")
 		details, _ := cmd.Flags().GetBool("details")
 
-		param := ec.GetParam(decrypt, args[0])
+		param := ec.GetParam(common.GetOneInput{
+			Name:    args[0],
+			Decrypt: decrypt,
+		})
 		display(param, details)
 	},
 }
