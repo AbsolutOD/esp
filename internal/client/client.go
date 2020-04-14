@@ -11,6 +11,7 @@ type Client interface {
 	Save(p common.EspParamInput) common.SaveOutput
 	GetOne(p common.GetOneInput) common.EspParam
 	GetMany(p common.ListParamInput) []common.EspParam
+	Copy(cc common.CopyCommand) common.SaveOutput
 }
 
 type EspClient struct {
@@ -30,10 +31,10 @@ func New(c EspClient) *EspClient {
 }
 
 // GetParam Queries the ssm param
-func (c *EspClient) GetParam(decrypt bool, key string) common.EspParam {
+func (c *EspClient) GetParam(i common.GetOneInput) common.EspParam {
 	in := common.GetOneInput{
-		Name: key,
-		Decrypt: decrypt,
+		Name: i.Name,
+		Decrypt: i.Decrypt,
 	}
 	return c.Client.GetOne(in)
 }
@@ -46,4 +47,14 @@ func (c *EspClient) ListParams(p common.ListParamInput) []common.EspParam {
 // Save stores the parameter in the configured backend
 func (c *EspClient) Save(p common.EspParamInput) common.SaveOutput {
 	return c.Client.Save(p)
+}
+
+func (c *EspClient) Copy(cc common.CopyCommand) common.EspParam {
+	_ = c.Client.Copy(cc)
+
+	query := common.GetOneInput{
+		Name:    cc.Destination,
+		Decrypt: true,
+	}
+	return c.GetParam(query)
 }

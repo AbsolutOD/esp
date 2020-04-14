@@ -25,7 +25,6 @@ var putCmd = &cobra.Command{
 			Value:  value,
 		}
 		ec.Save(param)
-
 	},
 }
 

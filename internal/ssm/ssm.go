@@ -2,12 +2,11 @@ package ssm
 
 import (
 	"fmt"
-	"github.com/pinpt/esp/internal/utils"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	awsssm "github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/pinpt/esp/internal/common"
-	"os"
+	"github.com/pinpt/esp/internal/utils"
 )
 
 type action string
@@ -34,9 +33,7 @@ func (s *Service) Save(p common.EspParamInput) common.SaveOutput {
 	}
 	param, err := s.Svc.PutParameter(pi)
 	if err != nil {
-		awsErr := CheckSSMError(Save, err)
-		fmt.Println("SSM Error: %s", awsErr.Error())
-		os.Exit(1)
+		handleAwsErr(Save, err)
 	}
 	return common.SaveOutput{ Version: *param.Version }
 }
@@ -48,11 +45,9 @@ func (s *Service) GetOne(p common.GetOneInput) common.EspParam {
 	}
 	resp, err := s.Svc.GetParameter(si)
 	if err != nil {
-		awsErr := CheckSSMError(Get, err)
-		fmt.Println("SSM Error: %s", awsErr.Error())
-		os.Exit(1)
+		handleAwsErr(Get, err)
 	}
-	param := ConvertToEspParam(resp.Parameter)
+	param := convertToEspParam(resp.Parameter)
 	return param
 }
 
@@ -63,14 +58,12 @@ func (s *Service) GetMany(p common.ListParamInput) []common.EspParam {
 	}
 	params, err := s.Svc.GetParametersByPath(si)
 	if err != nil {
-		awsErr := CheckSSMError(GetMany, err)
-		fmt.Println("SSM Error: %s", awsErr.Error())
-		os.Exit(1)
+		handleAwsErr(GetMany, err)
 	}
 
 	var espParams []common.EspParam
 	for _, v := range params.Parameters {
-		espParams = append(espParams, ConvertToEspParam(v))
+		espParams = append(espParams, convertToEspParam(v))
 	}
 
 	return espParams
@@ -80,8 +73,22 @@ func (s *Service) GetMany(p common.ListParamInput) []common.EspParam {
 func New() *Service {
 	svc := new(Service)
 	svc.Region = utils.GetEnv("AWS_REGION", "us-east-1")
+	fmt.Printf("Region: %s\n", svc.Region)
 	svc.Cfg = aws.Config{ Region: aws.String(svc.Region) }
 	return svc
+}
+
+func (s *Service) Copy(cc common.CopyCommand) common.SaveOutput {
+	sparam := s.GetOne(common.GetOneInput{
+		Name: cc.Source,
+		Decrypt: true,
+	})
+	dparam := common.EspParamInput{
+		Name:   cc.Destination,
+		Secure: sparam.Secure,
+		Value:  sparam.Value,
+	}
+	return s.Save(dparam)
 }
 
 // Init create the actual session to talk to the AWS API

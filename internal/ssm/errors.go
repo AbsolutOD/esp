@@ -5,56 +5,62 @@ import (
 	awsssm "github.com/aws/aws-sdk-go/service/ssm"
 )
 
-// CheckSSMError is the entry point for check all of the based and call specific errors
-func CheckSSMError(a action, err error) error {
-	awsErr := CheckBaseSSMErrors(err)
+// checkSSMError is the entry point for check all of the based and call specific errors
+func checkSSMError(a action, err error) error {
+	awsErr := checkBaseSSMErrors(err)
 	if awsErr != nil {
 		return awsErr
 	}
 	switch a {
 	case Get:
-		return CheckSSMGetParameterError(err)
+		return checkSSMGetParameterError(err)
 	case Save:
-		return CheckSSMPutParameterError(err)
+		return checkSSMPutParameterError(err)
+	default:
+		// this means we are missing a check and we can print it out in the calling function
+		return awsErr
 	}
+
 }
 
-// CheckRegion catches if the aws region isn't configured
-func CheckRegion(err error) error {
+// checkRegion catches if the aws region isn't configured
+func checkRegion(err error) error {
 	if awsErr, ok := err.(awserr.Error); ok {
 		switch  awsErr.Code() {
 		case "MissingRegion":
 			return awsErr
 		}
 	}
+	return nil
 }
 
-// CheckBaseSSMErrors checks for the common errors all SSM API calls might return
-func CheckBaseSSMErrors(err error) error {
+// checkBaseSSMErrors checks for the common errors all SSM API calls might return
+func checkBaseSSMErrors(err error) error {
 	if awsErr, ok := err.(awserr.Error); ok {
 		switch awsErr.Code() {
 		case awsssm.ErrCodeInvalidKeyId:
 			return awsErr
 		case awsssm.ErrCodeInternalServerError:
 			return awsErr
-		default:
-			return CheckRegion(err)
 		}
 	}
+	return checkRegion(err)
 }
 
-// CheckSSMGetParameterError checks for errors the GetParameter API call might return
-func CheckSSMGetParameterError(err error) error {
+// checkSSMGetParameterError checks for errors the GetParameter API call might return
+func checkSSMGetParameterError(err error) error {
 	if awsErr, ok := err.(awserr.Error); ok {
 		switch awsErr.Code() {
 		case awsssm.ErrCodeParameterNotFound:
 			return awsErr
 		}
 	}
+	//return errors.New("SSM Get Param error")
+	return nil
 }
 
-// CheckSSMPutParameterError checks for errors the PutParameter API call might return
-func CheckSSMPutParameterError(err error) error {
+// checkSSMPutParameterError checks for errors the PutParameter API call might return
+func checkSSMPutParameterError(err error) error {
 	if awsErr, ok := err.(awserr.Error); ok {
 		switch awsErr.Code() {
 		case awsssm.ErrCodeParameterLimitExceeded:
@@ -77,12 +83,16 @@ func CheckSSMPutParameterError(err error) error {
 			return awsErr
 		case awsssm.ErrCodeIncompatiblePolicyException:
 			return awsErr
+		case awsssm.ErrCodeParameterAlreadyExists:
+			return awsErr
 		}
 	}
+	//return errors.New("aws ssm param put error")
+	return nil
 }
 
-// CheckSSMByPathError checks for errors the GetParameterByPath API call might return
-func CheckSSMByPathError(err error) error {
+// checkSSMByPathError checks for errors the GetParameterByPath API call might return
+func checkSSMByPathError(err error) error {
 	if awsErr, ok := err.(awserr.Error); ok {
 		switch awsErr.Code() {
 		case awsssm.ErrCodeInternalServerError:
@@ -99,4 +109,6 @@ func CheckSSMByPathError(err error) error {
 			return awsErr
 		}
 	}
+	//return errors.New("aws ssm param get by path error")
+	return nil
 }
