@@ -8,19 +8,16 @@ import (
 // checkSSMError is the entry point for check all of the based and call specific errors
 func checkSSMError(a action, err error) error {
 	awsErr := checkBaseSSMErrors(err)
-	if awsErr != nil {
+	/*if awsErr != nil {
 		return awsErr
-	}
+	}*/
 	switch a {
 	case Get:
 		return checkSSMGetParameterError(err)
 	case Save:
 		return checkSSMPutParameterError(err)
-	default:
-		// this means we are missing a check and we can print it out in the calling function
-		return awsErr
 	}
-
+	return awsErr
 }
 
 // checkRegion catches if the aws region isn't configured
@@ -53,6 +50,9 @@ func checkSSMGetParameterError(err error) error {
 		switch awsErr.Code() {
 		case awsssm.ErrCodeParameterNotFound:
 			return awsErr
+		default:
+			// this means we are missing a check and we can print it out in the calling function
+			return awsErr
 		}
 	}
 	//return errors.New("SSM Get Param error")
@@ -63,6 +63,8 @@ func checkSSMGetParameterError(err error) error {
 func checkSSMPutParameterError(err error) error {
 	if awsErr, ok := err.(awserr.Error); ok {
 		switch awsErr.Code() {
+		//case awsssm.ErrCodeInvalidPa:
+		//	return awsErr
 		case awsssm.ErrCodeParameterLimitExceeded:
 			return awsErr
 		case awsssm.ErrCodeTooManyUpdates:
@@ -84,6 +86,9 @@ func checkSSMPutParameterError(err error) error {
 		case awsssm.ErrCodeIncompatiblePolicyException:
 			return awsErr
 		case awsssm.ErrCodeParameterAlreadyExists:
+			return awsErr
+		default:
+			// this means we are missing a check and we can print it out in the calling function
 			return awsErr
 		}
 	}
