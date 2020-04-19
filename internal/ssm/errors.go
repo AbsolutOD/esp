@@ -8,9 +8,6 @@ import (
 // checkSSMError is the entry point for check all of the based and call specific errors
 func checkSSMError(a action, err error) error {
 	awsErr := checkBaseSSMErrors(err)
-	/*if awsErr != nil {
-		return awsErr
-	}*/
 	switch a {
 	case Get:
 		return checkSSMGetParameterError(err)

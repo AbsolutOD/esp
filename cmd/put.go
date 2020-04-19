@@ -24,6 +24,10 @@ var putCmd = &cobra.Command{
 			Value:  value,
 		}
 		ec.Save(param)
+		savedParam := ec.GetParam(common.GetOneInput{
+			Name: name,
+		})
+		detailDisplay(savedParam)
 	},
 }
 
