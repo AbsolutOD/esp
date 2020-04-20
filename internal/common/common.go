@@ -16,7 +16,6 @@ type EspParam struct {
 
 // EspParamInput represents parameter that is going to be saved
 type EspParamInput struct {
-	Path string
 	Name string
 	Secure bool
 	Value string

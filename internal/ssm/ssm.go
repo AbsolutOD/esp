@@ -1,7 +1,6 @@
 package ssm
 
 import (
-	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	awsssm "github.com/aws/aws-sdk-go/service/ssm"
@@ -71,11 +70,11 @@ func (s *Service) GetMany(p common.ListParamInput) []common.EspParam {
 
 // Copy method copies the given parameter to a new location
 func (s *Service) Copy(cc common.CopyCommand) common.SaveOutput {
-	getOneInput := common.GetOneInput{
+	input := common.GetOneInput{
 		Name: cc.Source,
 		Decrypt: true,
 	}
-	sparam := s.GetOne(getOneInput)
+	sparam := s.GetOne(input)
 
 	dparam := common.EspParamInput{
 		Name:   cc.Destination,
@@ -89,7 +88,6 @@ func (s *Service) Copy(cc common.CopyCommand) common.SaveOutput {
 func New() *Service {
 	svc := new(Service)
 	svc.Region = utils.GetEnv("AWS_REGION", "us-east-1")
-	fmt.Printf("Region: %s\n", svc.Region)
 	svc.Cfg = aws.Config{ Region: aws.String(svc.Region) }
 	return svc
 }
