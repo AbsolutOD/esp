@@ -12,6 +12,7 @@ type Client interface {
 	GetOne(p common.GetOneInput) common.EspParam
 	GetMany(p common.ListParamInput) []common.EspParam
 	Copy(cc common.CopyCommand) common.SaveOutput
+	Delete(p common.DeleteInput) string
 }
 
 type EspClient struct {
@@ -47,6 +48,11 @@ func (c *EspClient) ListParams(p common.ListParamInput) []common.EspParam {
 // Save stores the parameter in the configured backend
 func (c *EspClient) Save(p common.EspParamInput) common.SaveOutput {
 	return c.Client.Save(p)
+}
+
+// Delete removes a parameter from the backend
+func (c *EspClient) Delete(p common.DeleteInput) string {
+	return c.Client.Delete(p)
 }
 
 func (c *EspClient) Copy(cc common.CopyCommand) common.EspParam {

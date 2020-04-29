@@ -15,6 +15,7 @@ const (
 	GetMany action = "getMany"
 	Put action = "put"
 	Save action = "save"
+	Delete action = "delete"
 )
 
 type Service struct {
@@ -35,6 +36,17 @@ func (s *Service) Save(p common.EspParamInput) common.SaveOutput {
 		handleAwsErr(Save, err)
 	}
 	return common.SaveOutput{ Version: *param.Version }
+}
+
+func (s *Service) Delete(p common.DeleteInput) string {
+	dpi := &awsssm.DeleteParameterInput{
+		Name: aws.String(p.Name),
+	}
+	_, err := s.Svc.DeleteParameter(dpi)
+	if err != nil {
+		handleAwsErr(Delete, err)
+	}
+	return p.Name
 }
 
 func (s *Service) GetOne(p common.GetOneInput) common.EspParam {

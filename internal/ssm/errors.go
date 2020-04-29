@@ -13,6 +13,8 @@ func checkSSMError(a action, err error) error {
 		return checkSSMGetParameterError(err)
 	case Save:
 		return checkSSMPutParameterError(err)
+	case Delete:
+		return checkDeleteParameterError(err)
 	}
 	return awsErr
 }
@@ -39,6 +41,19 @@ func checkBaseSSMErrors(err error) error {
 		}
 	}
 	return checkRegion(err)
+}
+
+func checkDeleteParameterError(err error) error {
+	if awsErr, ok := err.(awserr.Error); ok {
+		switch awsErr.Code() {
+		case awsssm.ErrCodeParameterNotFound:
+			return awsErr
+		default:
+			// this means we are missing a check and we can print it out in the calling function
+			return awsErr
+		}
+	}
+	return nil
 }
 
 // checkSSMGetParameterError checks for errors the GetParameter API call might return

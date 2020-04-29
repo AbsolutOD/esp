@@ -38,6 +38,11 @@ type ListParamInput struct {
 	Decrypt bool
 }
 
+// GetOneInput represents the query to delete a param
+type DeleteInput struct {
+	Name string
+}
+
 type CopyCommand struct {
 	Source      string
 	Destination string
