@@ -1,6 +1,7 @@
 package ssm
 
 import (
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	awsssm "github.com/aws/aws-sdk-go/service/ssm"
@@ -67,10 +68,14 @@ func (s *Service) GetMany(p common.ListParamInput) []common.EspParam {
 		Path:           aws.String(p.Path),
 		WithDecryption: aws.Bool(p.Decrypt),
 	}
+	fmt.Printf("Get Path: %s\n", p.Path)
 	params, err := s.Svc.GetParametersByPath(si)
 	if err != nil {
 		handleAwsErr(GetMany, err)
 	}
+
+	fmt.Printf("err: %s\n", err)
+	fmt.Printf("Parameters: %s", params.Parameters)
 
 	var espParams []common.EspParam
 	for _, v := range params.Parameters {
