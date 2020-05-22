@@ -39,4 +39,5 @@ func init() {
 	rootCmd.AddCommand(listCmd)
 
 	listCmd.Flags().BoolP("decrypt", "d", false, "Decrypt SSM secure strings.")
+	//listCmd.Flags().BoolP("recursive", "r", false, "Recursively get params from sub dirs.")
 }

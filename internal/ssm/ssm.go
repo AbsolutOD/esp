@@ -66,6 +66,7 @@ func (s *Service) GetMany(p common.ListParamInput) []common.EspParam {
 	si := &awsssm.GetParametersByPathInput{
 		Path:           aws.String(p.Path),
 		WithDecryption: aws.Bool(p.Decrypt),
+		Recursive:      aws.Bool(true),
 	}
 	params, err := s.Svc.GetParametersByPath(si)
 	if err != nil {
