@@ -82,6 +82,6 @@ func (c *EspClient) Move(mc common.MoveCommand) common.MoveCommand {
 		Value:  p.Value,
 	})
 
-	_ = c.Delete(common.DeleteInput{})
+	_ = c.Delete(common.DeleteInput{Name: mc.Source})
 	return mc
 }

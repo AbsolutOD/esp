@@ -12,7 +12,7 @@ import (
 // moveCmd gets the parameter from the backend store
 var moveCmd = &cobra.Command{
 	Use:     "move [path]",
-	Aliases: []string{"rm"},
+	Aliases: []string{"mv"},
 	Short:   "move a parameter by path in SSM",
 	Long:    `Allows you to move a specific ssm parameter with an exact path.`,
 	Args:    cobra.MinimumNArgs(2),
