@@ -27,9 +27,11 @@ var listCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ec := client.New(client.EspClient{Backend: "ssm"})
 		decrypt, _ := cmd.Flags().GetBool("decrypt")
+		recursive, _ := cmd.Flags().GetBool("recursive")
 		params := ec.ListParams(common.ListParamInput{
 			Path:    args[0],
 			Decrypt: decrypt,
+			Recursive: recursive,
 		})
 		displayParams(params)
 	},
@@ -39,5 +41,5 @@ func init() {
 	rootCmd.AddCommand(listCmd)
 
 	listCmd.Flags().BoolP("decrypt", "d", false, "Decrypt SSM secure strings.")
-	//listCmd.Flags().BoolP("recursive", "r", false, "Recursively get params from sub dirs.")
+	listCmd.Flags().BoolP("recursive", "r", false, "Recursively get params from sub dirs.")
 }

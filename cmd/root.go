@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/logrusorgru/aurora"
 	"os"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -39,6 +40,9 @@ func init() {
 	region := utils.GetEnv("AWS_REGION", "us-east-1")
 	rootCmd.PersistentFlags().StringVar(&awsProfile, "profile", profile, "Set the AWS profile to use.")
 	rootCmd.PersistentFlags().StringVar(&awsRegion, "region", region, "Set the AWS region to use.")
+
+	fmt.Printf("Using Profile: %s\n", aurora.Green(profile))
+	fmt.Printf("Region set to: %s...\n", aurora.Green(region))
 }
 
 // initConfig reads in config file and ENV variables if set.

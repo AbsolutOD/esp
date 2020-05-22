@@ -36,6 +36,7 @@ type SaveOutput struct {
 type ListParamInput struct {
 	Path      string
 	Decrypt   bool
+	Recursive bool
 }
 
 // DeleteInput represents the query to delete a param
