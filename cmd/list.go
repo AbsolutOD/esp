@@ -20,8 +20,10 @@ func displayParams(p []common.EspParam) {
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:   "list [path]",
+	Aliases: []string{"ls"},
 	Short: "Recursively list a SSM path.",
 	Long:  `The list command gives you an easy way to recursively get all SSM parameters with a base path.`,
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ec := client.New(client.EspClient{Backend: "ssm"})
 		decrypt, _ := cmd.Flags().GetBool("decrypt")

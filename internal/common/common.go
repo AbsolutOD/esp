@@ -4,26 +4,26 @@ import "time"
 
 // EspParam represents the parameter that is being managed by ESP
 type EspParam struct {
-	Id string
-	Name string
-	Path string
-	Type string
-	Secure bool
-	Value string
-	Version int64
+	Id               string
+	Name             string
+	Path             string
+	Type             string
+	Secure           bool
+	Value            string
+	Version          int64
 	LastModifiedDate time.Time
 }
 
 // EspParamInput represents parameter that is going to be saved
 type EspParamInput struct {
-	Name string
+	Name   string
 	Secure bool
-	Value string
+	Value  string
 }
 
 // GetOneInput represents the query to get a param
 type GetOneInput struct {
-	Name string
+	Name    string
 	Decrypt bool
 }
 
@@ -34,16 +34,23 @@ type SaveOutput struct {
 
 // ListParamInput represents the output of a list query
 type ListParamInput struct {
-	Path string
+	Path    string
 	Decrypt bool
 }
 
-// GetOneInput represents the query to delete a param
+// DeleteInput represents the query to delete a param
 type DeleteInput struct {
 	Name string
 }
 
+// CopyCommand represents the move command
 type CopyCommand struct {
+	Source      string
+	Destination string
+}
+
+// MoveCommand represents the move command
+type MoveCommand struct {
 	Source      string
 	Destination string
 }

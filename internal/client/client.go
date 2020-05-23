@@ -5,8 +5,9 @@ import (
 	"github.com/pinpt/esp/internal/ssm"
 )
 
-type Backend string
+type backend string
 
+// Client the main interface that is defined by the backend implementation.
 type Client interface {
 	Save(p common.EspParamInput) common.SaveOutput
 	GetOne(p common.GetOneInput) common.EspParam
@@ -15,11 +16,13 @@ type Client interface {
 	Delete(p common.DeleteInput) string
 }
 
+// EspClient is the main struct for interacting with the backend driver
 type EspClient struct {
-	Backend Backend
-	Client Client
+	Backend backend
+	Client  Client
 }
 
+// New creates a new instance of the Client for esp
 func New(c EspClient) *EspClient {
 	if c.Backend == "ssm" {
 		svc := ssm.New()
@@ -34,7 +37,7 @@ func New(c EspClient) *EspClient {
 // GetParam Queries the ssm param
 func (c *EspClient) GetParam(i common.GetOneInput) common.EspParam {
 	in := common.GetOneInput{
-		Name: i.Name,
+		Name:    i.Name,
 		Decrypt: i.Decrypt,
 	}
 	return c.Client.GetOne(in)
@@ -55,6 +58,7 @@ func (c *EspClient) Delete(p common.DeleteInput) string {
 	return c.Client.Delete(p)
 }
 
+// Copy allows you to copy one path to another
 func (c *EspClient) Copy(cc common.CopyCommand) common.EspParam {
 	_ = c.Client.Copy(cc)
 
@@ -63,4 +67,21 @@ func (c *EspClient) Copy(cc common.CopyCommand) common.EspParam {
 		Decrypt: true,
 	}
 	return c.GetParam(query)
+}
+
+// Move copies a single param to a new path in the backend
+func (c *EspClient) Move(mc common.MoveCommand) common.MoveCommand {
+	p := c.GetParam(common.GetOneInput{
+		Name:    mc.Source,
+		Decrypt: true,
+	})
+
+	_ = c.Save(common.EspParamInput{
+		Name:   mc.Destination,
+		Secure: p.Secure,
+		Value:  p.Value,
+	})
+
+	_ = c.Delete(common.DeleteInput{Name: mc.Source})
+	return mc
 }

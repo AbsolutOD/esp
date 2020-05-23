@@ -11,6 +11,7 @@ import (
 // putCmd stores the parameter in the backend store
 var putCmd = &cobra.Command{
 	Use:   "put",
+	Aliases: []string{"add"},
 	Short: "Creates an SSM parameter with the given value.",
 	Long: `Simple command to add values to SSM parameter store.`,
 	Run: func(cmd *cobra.Command, args []string) {
