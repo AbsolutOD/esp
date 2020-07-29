@@ -85,7 +85,6 @@ func (s *Service) GetMany(p common.ListParamInput) []common.EspParam {
 	}
 
 	if params.NextToken != nil {
-		//fmt.Printf("NextToken: %s\n", *params.NextToken)
 		si.NextToken = params.NextToken
 		moreParams := s.getNextParams(si)
 		espParams = append(espParams, moreParams...)
@@ -107,7 +106,6 @@ func (s *Service) getNextParams(pi *awsssm.GetParametersByPathInput) []common.Es
 
 	if params.NextToken != nil {
 		pi.NextToken = params.NextToken
-		//fmt.Printf("NextToken: %s\n", *params.NextToken)
 		moreParams := s.getNextParams(pi)
 		espParams = append(espParams, moreParams...)
 	}
