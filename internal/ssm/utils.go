@@ -3,26 +3,30 @@ package ssm
 import (
 	"errors"
 	"fmt"
+	"os"
+
 	"github.com/aws/aws-sdk-go/aws"
 	awsssm "github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/pinpt/esp/internal/common"
-	"os"
 )
 
+// ParamType sets the base type for SSM parameter types
 type ParamType string
 
-const(
-	String ParamType = "string"
+// Defines the SSM types
+const (
+	String       ParamType = "string"
 	SecureString ParamType = "SecureString"
-	StringList ParamType = "Stringlist"
+	StringList   ParamType = "Stringlist"
 )
 
+// AwsParam represents an individual SSM parameter
 type AwsParam struct {
-	Arn string
-	Name string
-	Type ParamType
-	Value string
-	Version int
+	Arn              string
+	Name             string
+	Type             ParamType
+	Value            string
+	Version          int
 	LastModifiedDate float32
 }
 
@@ -37,18 +41,18 @@ func (p *AwsParam) isValid() error {
 func selectType(t bool) *string {
 	if t {
 		return aws.String(awsssm.ParameterTypeSecureString)
-	} else {
-		return aws.String(awsssm.ParameterTypeString)
 	}
+
+	return aws.String(awsssm.ParameterTypeString)
 }
 
 func convertToEspParam(ap *awsssm.Parameter) common.EspParam {
 	param := common.EspParam{
-		Id: *ap.ARN,
-		Name: *ap.Name,
-		Type: *ap.Type,
-		Value: *ap.Value,
-		Version: *ap.Version,
+		Id:               *ap.ARN,
+		Name:             *ap.Name,
+		Type:             *ap.Type,
+		Value:            *ap.Value,
+		Version:          *ap.Version,
 		LastModifiedDate: *ap.LastModifiedDate,
 	}
 
