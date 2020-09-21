@@ -2,15 +2,14 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/pinpt/esp/internal/app"
 	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-var IsEspProject = false
-var Env string
-
+var Config = app.New(false)
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "esp",
@@ -38,8 +37,8 @@ func init() {
 		fmt.Println("Please set the AWS_PROFILE environment variable.")
 		os.Exit(2)
 	}
-	rootCmd.PersistentFlags().StringVarP(&Env, "env", "e", "", "Declare the env to work on.")
-	if IsEspProject {
+	rootCmd.PersistentFlags().StringVarP(&Config.Env, "env", "e", "", "Declare the env to work on.")
+	if Config.IsEspProject {
 		if err := rootCmd.MarkFlagRequired("env"); err != nil {
 			fmt.Println("There is an .espFile.yaml defined, so you need to set --env arg.")
 			os.Exit(3)
@@ -59,11 +58,12 @@ func initConfig() {
 	// Search config in home directory with name ".esp" (without extension).
 	viper.AddConfigPath(cwd)
 	viper.SetConfigName(".espFile.yaml")
-	//viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in and mark that this is an ESP project.
 	if err := viper.ReadInConfig(); err == nil {
-		//fmt.Println("Error reading in config file: ", viper.ConfigFileUsed())
-		IsEspProject = true
+		Config.IsEspProject = true
+	}
+	if err := viper.Unmarshal(&Config); err != nil {
+		fmt.Println("Error parsing the .espFile")
 	}
 }

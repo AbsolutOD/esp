@@ -2,11 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/pinpt/esp/internal/app"
 	"github.com/pinpt/esp/internal/common"
 
-	"github.com/pinpt/esp/internal/client"
 	"github.com/logrusorgru/aurora"
+	"github.com/pinpt/esp/internal/client"
 
 	"github.com/spf13/cobra"
 )
@@ -20,7 +19,6 @@ func displayParams(p []common.EspParam) {
 
 // listCmd represents the list command
 func listCmd() *cobra.Command {
-	a := app.New(IsEspProject)
 	var listCmd = &cobra.Command{
 		Use:     "list [path]",
 		Aliases: []string{"ls"},
@@ -30,7 +28,6 @@ func listCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			ec := client.New(client.EspClient{Backend: "ssm"})
 			decrypt, _ := cmd.Flags().GetBool("decrypt")
-			//recursive, _ := cmd.Flags().GetBool("recursive")
 			params := ec.ListParams(common.ListParamInput{
 				Path:      args[0],
 				Decrypt:   decrypt,

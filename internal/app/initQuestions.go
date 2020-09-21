@@ -5,6 +5,7 @@ import (
 )
 
 type configInput struct {
+	Backend string
 	OrgName string
 	AppName string
 	Envs    string
@@ -19,6 +20,11 @@ type configInput struct {
 
 // the questions to ask
 var qs = []*survey.Question{
+	{
+		Name:     "backend",
+		Prompt:   &survey.Input{Message: "What backend do you want to use?"},
+		Validate: survey.Required,
+	},
 	{
 		Name:     "orgName",
 		Prompt:   &survey.Input{Message: "What is your Org's name?"},

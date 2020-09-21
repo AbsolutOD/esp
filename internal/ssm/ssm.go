@@ -14,7 +14,7 @@ type action string
 const (
 	Get     action = "get"
 	GetMany action = "getMany"
-	Put     action = "put"
+	//Put     action = "put"
 	Save    action = "save"
 	Delete  action = "delete"
 )

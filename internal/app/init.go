@@ -14,7 +14,7 @@ func (c *Config) WriteConfig(ci *configInput) error {
 	c.OrgName = ci.OrgName
 	c.AppName = ci.AppName
 	c.Envs = regexp.MustCompile(", *").Split(ci.Envs, -1)
-	out, err := yaml.Marshal(c.Path)
+	out, err := yaml.Marshal(c)
 	if err != nil {
 		return err
 	}
