@@ -5,10 +5,11 @@ import (
 )
 
 type configInput struct {
-	Backend string
-	OrgName string
-	AppName string
-	Envs    string
+	Backend     string
+	OrgName     string
+	OrgPrefix   string
+	AppName     string
+	Envs        string
 }
 
 /*func (ei *envInput) WriteAnswer(name string, value interface{}) error {
@@ -28,6 +29,11 @@ var qs = []*survey.Question{
 	{
 		Name:     "orgName",
 		Prompt:   &survey.Input{Message: "What is your Org's name?"},
+		Validate: survey.Required,
+	},
+	{
+		Name:     "orgPrefix",
+		Prompt:   &survey.Input{Message: "What prefix would you like to use for your Org?"},
 		Validate: survey.Required,
 	},
 	{
