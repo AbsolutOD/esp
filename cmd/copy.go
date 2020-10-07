@@ -10,8 +10,8 @@ import (
 
 // cpCmd represents the cp command
 var copyCmd = &cobra.Command{
-	Use:   "cp [OPTIONS] SRC_SSM_PATH DEST_SSM_PATH",
-	Aliases: []string{"copy"},
+	Use:   "copy [OPTIONS] SRC_SSM_PATH DEST_SSM_PATH",
+	Aliases: []string{"cp"},
 	Short: "Copy a SSM Param from its current path to a new SSM Path",
 	Long: "Copy SSM value from an existing path to a new path.\n",
 	Args: cobra.ExactArgs(2),

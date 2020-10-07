@@ -10,6 +10,7 @@ type Config struct {
 	IsEspProject   bool
 	Backend     string
 	OrgName     string
+	OrgPrefix   string
 	AppName     string
 	Envs        []string
 	Env         string
@@ -22,10 +23,13 @@ func New(isEspFile bool) Config {
 		IsEspProject: isEspFile,
 		Path: utils.GetCwd() + "/.espFile.yaml",
 	}
-	if err := viper.Unmarshal(&cfg); err != nil {
+	return cfg
+}
+
+func (c *Config) ReadEspFile()  {
+	if err := viper.Unmarshal(c); err != nil {
 		fmt.Printf("unable to decode into struct, %v\n", err)
 	}
-	return cfg
 }
 
 func (c *Config) CheckEnv(env string) bool {

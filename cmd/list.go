@@ -28,8 +28,12 @@ func listCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			ec := client.New(client.EspClient{Backend: "ssm"})
 			decrypt, _ := cmd.Flags().GetBool("decrypt")
+			var path string
+			if len(args) == 0 {
+				path = ""
+			}
 			params := ec.ListParams(common.ListParamInput{
-				Path:      args[0],
+				Path:      path,
 				Decrypt:   decrypt,
 				Recursive: true,
 			})
