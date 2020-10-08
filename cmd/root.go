@@ -49,20 +49,20 @@ func init() {
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	// Get current working directory.
-	/*cwd, err := os.Getwd()
+	cwd, err := os.Getwd()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
-	}*/
+	}
 
 	// Search config in home directory with name ".esp" (without extension).
 	//fmt.Printf("CWD: %s\n", cwd)
 	viper.SetConfigName(".espFile.yaml")
+	viper.AddConfigPath(cwd)
 	viper.AddConfigPath(".")
 
 	// If a config file is found, read it in and mark that this is an ESP project.
-	err := viper.ReadInConfig()
-	if err != nil {
+	if err := viper.ReadInConfig(); err != nil {
 		fmt.Errorf("unable to load espFile: %s", err)
 	} else {
 		fmt.Println("Loaded the espFie")
@@ -70,6 +70,9 @@ func initConfig() {
 	}
 	if err := viper.Unmarshal(&App); err != nil {
 		fmt.Println("Error parsing the .espFile.yaml")
+	} else {
+		fmt.Println("fuck")
 	}
+	fmt.Printf("we loaded %s\n", App.IsEspProject)
 	fmt.Println("End of initializing.")
 }
