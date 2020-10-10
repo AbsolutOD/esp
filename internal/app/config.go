@@ -15,13 +15,15 @@ type Config struct {
 	Envs        []string
 	Env         string
 	Path        string
+	Filename    string
 }
 
 // New creates a new config object
-func New(isEspFile bool) Config {
-	cfg := Config{
+func New(isEspFile bool) *Config {
+	cfg := &Config{
 		IsEspProject: isEspFile,
-		Path: utils.GetCwd() + "/.espFile.yaml",
+		Filename: ".espFile",
+		Path: utils.GetCwd(),
 	}
 	return cfg
 }
