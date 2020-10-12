@@ -1,11 +1,10 @@
 package client
 
 import (
+	"github.com/pinpt/esp/internal/app"
 	"github.com/pinpt/esp/internal/common"
 	"github.com/pinpt/esp/internal/ssm"
 )
-
-type backend string
 
 // Client the main interface that is defined by the backend implementation.
 type Client interface {
@@ -18,20 +17,22 @@ type Client interface {
 
 // EspClient is the main struct for interacting with the backend driver
 type EspClient struct {
-	Backend backend
+	Backend string
 	Client  Client
 }
 
 // New creates a new instance of the Client for esp
-func New(c EspClient) *EspClient {
+func New(c *app.Config) *EspClient {
 	if c.Backend == "ssm" {
 		svc := ssm.New()
 		svc.Init()
-		c.Client = svc
+		return &EspClient{
+			Backend: c.Backend,
+			Client: svc,
+		}
 	} else {
 		panic("Currently only the ssm backend is valid.")
 	}
-	return &c
 }
 
 // GetParam Queries the ssm param

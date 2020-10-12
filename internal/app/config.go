@@ -3,7 +3,6 @@ package app
 import (
 	"fmt"
 	"github.com/pinpt/esp/internal/utils"
-	"github.com/spf13/viper"
 )
 
 type Config struct {
@@ -28,10 +27,9 @@ func New(isEspFile bool) *Config {
 	return cfg
 }
 
-func (c *Config) ReadEspFile()  {
-	if err := viper.Unmarshal(c); err != nil {
-		fmt.Printf("unable to decode into struct, %v\n", err)
-	}
+func (c Config) GetAppPath() string {
+	path := fmt.Sprintf("/%s/%s/%s/", c.OrgName, c.Env, c.AppName)
+	return path
 }
 
 func (c *Config) CheckEnv(env string) bool {

@@ -10,7 +10,7 @@ func initCmd() *cobra.Command {
 		Use:   "init",
 		Short: "Initializes the current directory to be an ESP based application.",
 		Run: func(cmd *cobra.Command, args []string) {
-			cfg.InitQuestions()
+			esp.InitQuestions()
 		},
 	}
 

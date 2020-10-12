@@ -5,8 +5,6 @@ import (
 	"github.com/pinpt/esp/internal/common"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/pinpt/esp/internal/client"
-
 	"github.com/spf13/cobra"
 )
 
@@ -17,23 +15,26 @@ func displayParams(p []common.EspParam) {
 	}
 }
 
+func getPath(a []string) string {
+	if len(a) == 0 {
+		return esp.GetAppPath()
+	}
+	return a[0]
+}
+
 // listCmd represents the list command
 func listCmd() *cobra.Command {
 	var listCmd = &cobra.Command{
 		Use:     "list [path]",
 		Aliases: []string{"ls"},
-		Short:   "Recursively list a SSM path.",
-		Long:    `The list command gives you an easy way to recursively get all SSM parameters with a base path.`,
+		Short:   "Recursively list a SSM path if given.",
+		Long:    `The list command gives you an easy way to recursively get all SSM parameters with a base path.
+If you have a .espFile.yaml in the current directory this command will list all params under the project path.`,
 		//Args:    cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			ec := client.New(client.EspClient{Backend: "ssm"})
 			decrypt, _ := cmd.Flags().GetBool("decrypt")
-			var path string
-			if len(args) == 0 {
-				path = ""
-			}
-			params := ec.ListParams(common.ListParamInput{
-				Path:      path,
+			params := c.ListParams(common.ListParamInput{
+				Path:      getPath(args),
 				Decrypt:   decrypt,
 				Recursive: true,
 			})

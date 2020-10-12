@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/pinpt/esp/internal/client"
 	"github.com/pinpt/esp/internal/common"
 	"github.com/spf13/cobra"
 	"os"
@@ -28,8 +27,7 @@ var copyCmd = &cobra.Command{
 			Source:     args[0],
 			Destination: args[1],
 		}
-		ec := client.New(client.EspClient{ Backend: "ssm" })
-		ec.Copy(cc)
+		c.Copy(cc)
 	},
 	Example: "esp cp /ssm/path/key /ssm/new/path/key",
 }

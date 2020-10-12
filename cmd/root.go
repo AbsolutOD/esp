@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/pinpt/esp/internal/app"
+	"github.com/pinpt/esp/internal/client"
 	jww "github.com/spf13/jwalterweatherman"
 	"os"
 
@@ -11,7 +12,8 @@ import (
 )
 
 var verbose bool
-var cfg *app.Config
+var esp *app.Config
+var c *client.EspClient
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -29,7 +31,10 @@ func Execute() {
 }
 
 func init() {
-	cfg = app.New(false)
+	esp = app.New(false)
+	// setting this to SSM just to make the interface nicer, since we only have the SSM backend
+	esp.Backend = "ssm"
+	c = client.New(esp)
 	cobra.OnInitialize(initConfig)
 
 	// check AWS Region
@@ -43,7 +48,8 @@ func init() {
 	}
 
 	// CLI args
-	rootCmd.PersistentFlags().StringVarP(&cfg.Env, "env", "e", "", "Declare the env to work on.")
+	rootCmd.PersistentFlags().StringVarP(&esp.Env, "env", "e", "", "Declare the env to work on.")
+	rootCmd.PersistentFlags().StringVarP(&esp.Backend, "backend", "b", "ssm", "Set which backend to use.")
 	rootCmd.PersistentFlags().BoolVar(&verbose, "verbose", false, "Show more output")
 }
 
@@ -54,22 +60,27 @@ func initConfig() {
 	if verbose {
 		jww.SetStdoutThreshold(jww.LevelInfo)
 	}
-	viper.SetConfigName(cfg.Filename)
-	viper.AddConfigPath(cfg.Path)
+	viper.SetConfigName(esp.Filename)
+	viper.AddConfigPath(esp.Path)
 
 	// If a config file is found, read it in and mark that this is an ESP project.
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Printf("unable to load espFile: %s\n", err)
 	} else {
-		cfg.IsEspProject = true
+		esp.IsEspProject = true
 	}
-	if err := viper.Unmarshal(&cfg); err != nil {
-		fmt.Printf("Error parsing the %s\n", cfg.Filename)
+	if err := viper.Unmarshal(&esp); err != nil {
+		fmt.Printf("Error parsing the %s\n", esp.Filename)
 	}
 
-	if cfg.IsEspProject {
+	if esp.IsEspProject {
+		// not going to force this at the moment.  I will add this when I have a second backend
+		/*if err := rootCmd.MarkFlagRequired("backend"); err != nil {
+			//fmt.Printf("There is an %s.yaml defined, so you need to set --env arg.\n", esp.Filename)
+			os.Exit(3)
+		}*/
 		if err := rootCmd.MarkFlagRequired("env"); err != nil {
-			//fmt.Printf("There is an %s.yaml defined, so you need to set --env arg.\n", cfg.Filename)
+			//fmt.Printf("There is an %s.yaml defined, so you need to set --env arg.\n", esp.Filename)
 			os.Exit(3)
 		}
 	}

@@ -7,7 +7,6 @@ import (
 
 	"github.com/logrusorgru/aurora"
 	"github.com/olekukonko/tablewriter"
-	"github.com/pinpt/esp/internal/client"
 	"github.com/spf13/cobra"
 )
 
@@ -46,11 +45,10 @@ var getCmd = &cobra.Command{
 	Long:  `Allows you to get a specific ssm parameter with an exact path or recursively get params.`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		ec := client.New(client.EspClient{ Backend: "ssm" })
 		decrypt, _ := cmd.Flags().GetBool("decrypt")
 		details, _ := cmd.Flags().GetBool("details")
 
-		param := ec.GetParam(common.GetOneInput{
+		param := c.GetParam(common.GetOneInput{
 			Name:    args[0],
 			Decrypt: decrypt,
 		})

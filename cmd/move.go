@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/pinpt/esp/internal/client"
 	"github.com/pinpt/esp/internal/common"
 	"github.com/spf13/cobra"
 )
@@ -17,8 +16,7 @@ var moveCmd = &cobra.Command{
 	Long:    `Allows you to move a specific ssm parameter with an exact path.`,
 	Args:    cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
-		ec := client.New(client.EspClient{Backend: "ssm"})
-		p := ec.Move(common.MoveCommand{
+		p := c.Move(common.MoveCommand{
 			Source:      args[0],
 			Destination: args[1],
 		})
