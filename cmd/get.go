@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/pinpt/esp/internal/common"
 	"os"
+	"strconv"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/olekukonko/tablewriter"
@@ -25,12 +26,12 @@ func displayParam(p common.EspParam) {
 
 func detailDisplay(p common.EspParam) {
 	data := [][]string{
-		[]string{aurora.BrightYellow("ID").String(), p.Id},
-		[]string{aurora.BrightYellow("Last_Modified").String(), p.LastModifiedDate.String()},
-		[]string{aurora.BrightYellow("Name").String(), p.Name},
-		[]string{aurora.BrightYellow("Type").String(), p.Type},
-		[]string{aurora.BrightYellow("Value").String(), p.Value},
-		[]string{aurora.BrightYellow("Version").String(), string(p.Version)},
+		{aurora.BrightYellow("ID").String(), p.Id},
+		{aurora.BrightYellow("Last_Modified").String(), p.LastModifiedDate.String()},
+		{aurora.BrightYellow("Name").String(), p.Name},
+		{aurora.BrightYellow("Type").String(), p.Type},
+		{aurora.BrightYellow("Value").String(), p.Value},
+		{aurora.BrightYellow("Version").String(), strconv.FormatInt(p.Version, 10)},
 	}
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Keys", "Value"})
@@ -49,7 +50,7 @@ var getCmd = &cobra.Command{
 		details, _ := cmd.Flags().GetBool("details")
 
 		param := c.GetParam(common.GetOneInput{
-			Name:    args[0],
+			Name:    esp.GetAppParamPath(args[0]),
 			Decrypt: decrypt,
 		})
 		display(param, details)

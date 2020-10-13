@@ -27,8 +27,15 @@ func New(isEspFile bool) *Config {
 	return cfg
 }
 
+// GetAppPath returns the application's base path from the config
 func (c Config) GetAppPath() string {
 	path := fmt.Sprintf("/%s/%s/%s/", c.OrgName, c.Env, c.AppName)
+	return path
+}
+
+// GetAppParamPath builds the application's param path from the config file
+func (c Config) GetAppParamPath(p string) string {
+	path := fmt.Sprintf("/%s/%s/%s/%s", c.OrgName, c.Env, c.AppName, p)
 	return path
 }
 
