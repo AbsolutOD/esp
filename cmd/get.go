@@ -5,6 +5,7 @@ import (
 	"github.com/pinpt/esp/internal/common"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/olekukonko/tablewriter"
@@ -39,6 +40,13 @@ func detailDisplay(p common.EspParam) {
 	table.Render()
 }
 
+func getParamPath(p string) string {
+	if strings.HasPrefix(p, "/") {
+		return p
+	}
+	return esp.GetAppParamPath(p)
+}
+
 // getCmd gets the parameter from the backend store
 var getCmd = &cobra.Command{
 	Use:   "get [path]",
@@ -50,7 +58,7 @@ var getCmd = &cobra.Command{
 		details, _ := cmd.Flags().GetBool("details")
 
 		param := c.GetParam(common.GetOneInput{
-			Name:    esp.GetAppParamPath(args[0]),
+			Name:    getParamPath(args[0]),
 			Decrypt: decrypt,
 		})
 		display(param, details)

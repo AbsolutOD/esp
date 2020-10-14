@@ -64,16 +64,14 @@ func initConfig() {
 	viper.AddConfigPath(esp.Path)
 
 	// If a config file is found, read it in and mark that this is an ESP project.
-	if err := viper.ReadInConfig(); err != nil {
-		fmt.Printf("unable to load espFile: %s\n", err)
-	} else {
+	if err := viper.ReadInConfig(); err == nil {
 		esp.IsEspProject = true
-	}
-	if err := viper.Unmarshal(&esp); err != nil {
-		fmt.Printf("Error parsing the %s\n", esp.Filename)
 	}
 
 	if esp.IsEspProject {
+		if err := viper.Unmarshal(&esp); err != nil {
+			fmt.Printf("Error parsing the %s\n", esp.Filename)
+		}
 		// not going to force this at the moment.  I will add this when I have a second backend
 		/*if err := rootCmd.MarkFlagRequired("backend"); err != nil {
 			//fmt.Printf("There is an %s.yaml defined, so you need to set --env arg.\n", esp.Filename)
