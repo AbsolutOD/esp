@@ -2,11 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/pinpt/esp/internal/client"
 	"github.com/pinpt/esp/internal/common"
 
-	"github.com/pinpt/esp/internal/client"
 	"github.com/logrusorgru/aurora"
-
 	"github.com/spf13/cobra"
 )
 
@@ -17,29 +16,44 @@ func displayParams(p []common.EspParam) {
 	}
 }
 
+func getPath(a []string) string {
+	if len(a) == 0 {
+		return esp.GetAppPath()
+	}
+	return a[0]
+}
+
+func listParams(cmd *cobra.Command, c *client.EspClient, path string)  {
+	decrypt, _ := cmd.Flags().GetBool("decrypt")
+	params := c.ListParams(common.ListParamInput{
+		Path:      path,
+		Decrypt:   decrypt,
+		Recursive: true,
+	})
+	displayParams(params)
+}
+
 // listCmd represents the list command
-var listCmd = &cobra.Command{
-	Use:   "list [path]",
-	Aliases: []string{"ls"},
-	Short: "Recursively list a SSM path.",
-	Long:  `The list command gives you an easy way to recursively get all SSM parameters with a base path.`,
-	Args:  cobra.MinimumNArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		ec := client.New(client.EspClient{Backend: "ssm"})
-		decrypt, _ := cmd.Flags().GetBool("decrypt")
-		recursive, _ := cmd.Flags().GetBool("recursive")
-		params := ec.ListParams(common.ListParamInput{
-			Path:    args[0],
-			Decrypt: decrypt,
-			Recursive: recursive,
-		})
-		displayParams(params)
-	},
+func listCmd() *cobra.Command {
+	var listCmd = &cobra.Command{
+		Use:     "list [path]",
+		Aliases: []string{"ls"},
+		Short:   "Recursively list a SSM path if given.",
+		Long:    `The list command gives you an easy way to recursively get all SSM parameters with a base path.
+If you have a .espFile.yaml in the current directory this command will list all params under the project path.`,
+		Run: func(cmd *cobra.Command, args []string) {
+			path := getPath(args)
+			listParams(cmd, c, path)
+		},
+	}
+	return listCmd
 }
 
 func init() {
+	listCmd := listCmd()
 	rootCmd.AddCommand(listCmd)
 
 	listCmd.Flags().BoolP("decrypt", "d", false, "Decrypt SSM secure strings.")
-	listCmd.Flags().BoolP("recursive", "r", false, "Recursively get params from sub dirs.")
+	listCmd.Flags().BoolP("path", "p", false, "Path to list parameters.")
+	//listCmd.Flags().BoolP("recursive", "r", false, "Recursively get params from sub dirs.")
 }

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/pinpt/esp/internal/client"
 	"github.com/pinpt/esp/internal/common"
 	"github.com/spf13/cobra"
 	"os"
@@ -10,8 +9,8 @@ import (
 
 // cpCmd represents the cp command
 var copyCmd = &cobra.Command{
-	Use:   "cp [OPTIONS] SRC_SSM_PATH DEST_SSM_PATH",
-	Aliases: []string{"copy"},
+	Use:   "copy [OPTIONS] SRC_SSM_PATH DEST_SSM_PATH",
+	Aliases: []string{"cp"},
 	Short: "Copy a SSM Param from its current path to a new SSM Path",
 	Long: "Copy SSM value from an existing path to a new path.\n",
 	Args: cobra.ExactArgs(2),
@@ -28,8 +27,7 @@ var copyCmd = &cobra.Command{
 			Source:     args[0],
 			Destination: args[1],
 		}
-		ec := client.New(client.EspClient{ Backend: "ssm" })
-		ec.Copy(cc)
+		c.Copy(cc)
 	},
 	Example: "esp cp /ssm/path/key /ssm/new/path/key",
 }

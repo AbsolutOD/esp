@@ -32,11 +32,11 @@ type SaveOutput struct {
 	Version int64
 }
 
-// ListParamInput represents the output of a list query
+// ListParamInput represents the input of a list query
 type ListParamInput struct {
-	Path      string
-	Decrypt   bool
-	Recursive bool
+	Path        string
+	Decrypt     bool
+	Recursive   bool
 }
 
 // DeleteInput represents the query to delete a param

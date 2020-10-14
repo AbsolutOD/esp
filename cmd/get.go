@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"github.com/pinpt/esp/internal/common"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/olekukonko/tablewriter"
-	"github.com/pinpt/esp/internal/client"
 	"github.com/spf13/cobra"
 )
 
@@ -26,17 +27,24 @@ func displayParam(p common.EspParam) {
 
 func detailDisplay(p common.EspParam) {
 	data := [][]string{
-		[]string{aurora.BrightYellow("ID").String(), p.Id},
-		[]string{aurora.BrightYellow("Last_Modified").String(), p.LastModifiedDate.String()},
-		[]string{aurora.BrightYellow("Name").String(), p.Name},
-		[]string{aurora.BrightYellow("Type").String(), p.Type},
-		[]string{aurora.BrightYellow("Value").String(), p.Value},
-		[]string{aurora.BrightYellow("Version").String(), string(p.Version)},
+		{aurora.BrightYellow("ID").String(), p.Id},
+		{aurora.BrightYellow("Last_Modified").String(), p.LastModifiedDate.String()},
+		{aurora.BrightYellow("Name").String(), p.Name},
+		{aurora.BrightYellow("Type").String(), p.Type},
+		{aurora.BrightYellow("Value").String(), p.Value},
+		{aurora.BrightYellow("Version").String(), strconv.FormatInt(p.Version, 10)},
 	}
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Keys", "Value"})
 	table.AppendBulk(data)
 	table.Render()
+}
+
+func getParamPath(p string) string {
+	if strings.HasPrefix(p, "/") {
+		return p
+	}
+	return esp.GetAppParamPath(p)
 }
 
 // getCmd gets the parameter from the backend store
@@ -46,12 +54,11 @@ var getCmd = &cobra.Command{
 	Long:  `Allows you to get a specific ssm parameter with an exact path or recursively get params.`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		ec := client.New(client.EspClient{ Backend: "ssm" })
 		decrypt, _ := cmd.Flags().GetBool("decrypt")
 		details, _ := cmd.Flags().GetBool("details")
 
-		param := ec.GetParam(common.GetOneInput{
-			Name:    args[0],
+		param := c.GetParam(common.GetOneInput{
+			Name:    getParamPath(args[0]),
 			Decrypt: decrypt,
 		})
 		display(param, details)

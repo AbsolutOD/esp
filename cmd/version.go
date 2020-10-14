@@ -11,7 +11,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Version of esp",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("ESP version 0.1.0")
+		fmt.Println("ESP version 0.2.0")
 	},
 }
 
