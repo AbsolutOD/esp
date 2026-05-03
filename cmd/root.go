@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/pinpt/esp/internal/app"
-	"github.com/pinpt/esp/internal/client"
-	jww "github.com/spf13/jwalterweatherman"
+	"log/slog"
 	"os"
 
+	"github.com/pinpt/esp/internal/app"
+	"github.com/pinpt/esp/internal/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -57,9 +57,11 @@ func init() {
 func initConfig() {
 	// Just setting for debugging
 
+	level := slog.LevelWarn
 	if verbose {
-		jww.SetStdoutThreshold(jww.LevelInfo)
+		level = slog.LevelInfo
 	}
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: level})))
 	viper.SetConfigName(esp.Filename)
 	viper.AddConfigPath(esp.Path)
 
