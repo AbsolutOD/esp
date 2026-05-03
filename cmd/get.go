@@ -34,10 +34,15 @@ func detailDisplay(p common.EspParam) {
 		{aurora.BrightYellow("Value").String(), p.Value},
 		{aurora.BrightYellow("Version").String(), strconv.FormatInt(p.Version, 10)},
 	}
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Keys", "Value"})
-	table.AppendBulk(data)
-	table.Render()
+	table := tablewriter.NewTable(os.Stdout)
+	table.Header("Keys", "Value")
+	if err := table.Bulk(data); err != nil {
+		fmt.Fprintf(os.Stderr, "table render error: %v\n", err)
+		return
+	}
+	if err := table.Render(); err != nil {
+		fmt.Fprintf(os.Stderr, "table render error: %v\n", err)
+	}
 }
 
 func getParamPath(p string) string {
