@@ -7,10 +7,9 @@ toolchain go1.26.2
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.5
 	github.com/aws/aws-sdk-go v1.44.70
-	github.com/logrusorgru/aurora v2.0.3+incompatible
+	github.com/logrusorgru/aurora/v4 v4.0.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/spf13/cobra v1.5.0
-	github.com/spf13/jwalterweatherman v1.1.0
 	github.com/spf13/viper v1.12.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -32,6 +31,7 @@ require (
 	github.com/rivo/uniseg v0.3.1 // indirect
 	github.com/spf13/afero v1.9.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
+	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.4.0 // indirect
 	golang.org/x/sys v0.0.0-20220804214406-8e32c043e418 // indirect

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/logrusorgru/aurora"
+	"github.com/logrusorgru/aurora/v4"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
