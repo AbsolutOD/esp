@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/pinpt/esp/internal/app"
-	"github.com/pinpt/esp/internal/client"
-	jww "github.com/spf13/jwalterweatherman"
+	"log/slog"
 	"os"
 
+	"github.com/pinpt/esp/internal/app"
+	"github.com/pinpt/esp/internal/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -34,10 +34,24 @@ func init() {
 	esp = app.New(false)
 	// setting this to SSM just to make the interface nicer, since we only have the SSM backend
 	esp.Backend = "ssm"
-	c = client.New(esp)
 	cobra.OnInitialize(initConfig)
 
-	// check AWS Region
+	// CLI args
+	rootCmd.PersistentFlags().StringVarP(&esp.Env, "env", "e", "", "Declare the env to work on.")
+	rootCmd.PersistentFlags().StringVarP(&esp.Backend, "backend", "b", "ssm", "Set which backend to use.")
+	rootCmd.PersistentFlags().BoolVar(&verbose, "verbose", false, "Show more output")
+}
+
+// initConfig reads in config file and ENV variables if set.
+// Runs via cobra.OnInitialize before any subcommand executes; not invoked
+// for --help, so help output works without AWS credentials.
+func initConfig() {
+	level := slog.LevelWarn
+	if verbose {
+		level = slog.LevelInfo
+	}
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: level})))
+
 	if _, ok := os.LookupEnv("AWS_DEFAULT_REGION"); !ok {
 		fmt.Println("Please set the AWS_DEFAULT_REGION environment variable.")
 		os.Exit(1)
@@ -47,19 +61,8 @@ func init() {
 		os.Exit(2)
 	}
 
-	// CLI args
-	rootCmd.PersistentFlags().StringVarP(&esp.Env, "env", "e", "", "Declare the env to work on.")
-	rootCmd.PersistentFlags().StringVarP(&esp.Backend, "backend", "b", "ssm", "Set which backend to use.")
-	rootCmd.PersistentFlags().BoolVar(&verbose, "verbose", false, "Show more output")
-}
+	c = client.New(esp)
 
-// initConfig reads in config file and ENV variables if set.
-func initConfig() {
-	// Just setting for debugging
-
-	if verbose {
-		jww.SetStdoutThreshold(jww.LevelInfo)
-	}
 	viper.SetConfigName(esp.Filename)
 	viper.AddConfigPath(esp.Path)
 

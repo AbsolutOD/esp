@@ -16,11 +16,11 @@ var copyCmd = &cobra.Command{
 	Args: cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		if args[0] == "" {
-			fmt.Errorf("source can not be empty")
+			fmt.Fprintln(os.Stderr, "source can not be empty")
 			os.Exit(1)
 		}
 		if args[1] == "" {
-			fmt.Errorf("destination can not be empty")
+			fmt.Fprintln(os.Stderr, "destination can not be empty")
 			os.Exit(1)
 		}
 		cc := common.CopyCommand{

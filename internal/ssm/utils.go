@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/aws/aws-sdk-go/aws"
-	awsssm "github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/pinpt/esp/internal/common"
 )
 
@@ -38,25 +38,24 @@ func (p *AwsParam) isValid() error {
 	return errors.New("invalid SSM Parameter Type")
 }
 
-func selectType(t bool) *string {
+func selectType(t bool) ssmtypes.ParameterType {
 	if t {
-		return aws.String(awsssm.ParameterTypeSecureString)
+		return ssmtypes.ParameterTypeSecureString
 	}
-
-	return aws.String(awsssm.ParameterTypeString)
+	return ssmtypes.ParameterTypeString
 }
 
-func convertToEspParam(ap *awsssm.Parameter) common.EspParam {
+func convertToEspParam(ap ssmtypes.Parameter) common.EspParam {
 	param := common.EspParam{
-		Id:               *ap.ARN,
-		Name:             *ap.Name,
-		Type:             *ap.Type,
-		Value:            *ap.Value,
-		Version:          *ap.Version,
-		LastModifiedDate: *ap.LastModifiedDate,
+		Id:               aws.ToString(ap.ARN),
+		Name:             aws.ToString(ap.Name),
+		Type:             string(ap.Type),
+		Value:            aws.ToString(ap.Value),
+		Version:          ap.Version,
+		LastModifiedDate: aws.ToTime(ap.LastModifiedDate),
 	}
 
-	if param.Type == "SecureString" {
+	if param.Type == string(ssmtypes.ParameterTypeSecureString) {
 		param.Secure = true
 	}
 	return param

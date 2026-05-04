@@ -1,9 +1,13 @@
 package ssm
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	awsssm "github.com/aws/aws-sdk-go/service/ssm"
+	"context"
+	"fmt"
+	"os"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	awsssm "github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/pinpt/esp/internal/common"
 	"github.com/pinpt/esp/internal/utils"
 )
@@ -15,16 +19,15 @@ const (
 	Get     action = "get"
 	GetMany action = "getMany"
 	//Put     action = "put"
-	Save    action = "save"
-	Delete  action = "delete"
+	Save   action = "save"
+	Delete action = "delete"
 )
 
 // Service the struct representing AWS service/Session
 type Service struct {
-	Svc     *awsssm.SSM
-	Region  string
-	Cfg     aws.Config
-	session *session.Session
+	Svc    *awsssm.Client
+	Region string
+	Cfg    aws.Config
 }
 
 // Save a single param for a given path
@@ -34,11 +37,11 @@ func (s *Service) Save(p common.EspParamInput) common.SaveOutput {
 		Name:  aws.String(p.Name),
 		Value: aws.String(p.Value),
 	}
-	param, err := s.Svc.PutParameter(pi)
+	param, err := s.Svc.PutParameter(context.Background(), pi)
 	if err != nil {
 		handleAwsErr(Save, err)
 	}
-	return common.SaveOutput{Version: *param.Version}
+	return common.SaveOutput{Version: param.Version}
 }
 
 // Delete a single param for a given path
@@ -46,7 +49,7 @@ func (s *Service) Delete(p common.DeleteInput) string {
 	dpi := &awsssm.DeleteParameterInput{
 		Name: aws.String(p.Name),
 	}
-	_, err := s.Svc.DeleteParameter(dpi)
+	_, err := s.Svc.DeleteParameter(context.Background(), dpi)
 	if err != nil {
 		handleAwsErr(Delete, err)
 	}
@@ -59,12 +62,11 @@ func (s *Service) GetOne(p common.GetOneInput) common.EspParam {
 		Name:           aws.String(p.Name),
 		WithDecryption: aws.Bool(p.Decrypt),
 	}
-	resp, err := s.Svc.GetParameter(si)
+	resp, err := s.Svc.GetParameter(context.Background(), si)
 	if err != nil {
 		handleAwsErr(Get, err)
 	}
-	param := convertToEspParam(resp.Parameter)
-	return param
+	return convertToEspParam(*resp.Parameter)
 }
 
 // GetMany recursively gets parameters from a given path
@@ -74,7 +76,7 @@ func (s *Service) GetMany(p common.ListParamInput) []common.EspParam {
 		WithDecryption: aws.Bool(p.Decrypt),
 		Recursive:      aws.Bool(p.Recursive),
 	}
-	params, err := s.Svc.GetParametersByPath(si)
+	params, err := s.Svc.GetParametersByPath(context.Background(), si)
 	if err != nil {
 		handleAwsErr(GetMany, err)
 	}
@@ -85,7 +87,6 @@ func (s *Service) GetMany(p common.ListParamInput) []common.EspParam {
 	}
 
 	if params.NextToken != nil {
-		//fmt.Printf("NextToken: %s\n", *params.NextToken)
 		si.NextToken = params.NextToken
 		moreParams := s.getNextParams(si)
 		espParams = append(espParams, moreParams...)
@@ -95,7 +96,7 @@ func (s *Service) GetMany(p common.ListParamInput) []common.EspParam {
 
 // getNextParams uses the NextToken to get more params
 func (s *Service) getNextParams(pi *awsssm.GetParametersByPathInput) []common.EspParam {
-	params, err := s.Svc.GetParametersByPath(pi)
+	params, err := s.Svc.GetParametersByPath(context.Background(), pi)
 	if err != nil {
 		handleAwsErr(GetMany, err)
 	}
@@ -107,7 +108,6 @@ func (s *Service) getNextParams(pi *awsssm.GetParametersByPathInput) []common.Es
 
 	if params.NextToken != nil {
 		pi.NextToken = params.NextToken
-		//fmt.Printf("NextToken: %s\n", *params.NextToken)
 		moreParams := s.getNextParams(pi)
 		espParams = append(espParams, moreParams...)
 	}
@@ -134,12 +134,16 @@ func (s *Service) Copy(cc common.CopyCommand) common.SaveOutput {
 func New() *Service {
 	svc := new(Service)
 	svc.Region = utils.GetEnv("AWS_REGION", "us-east-1")
-	svc.Cfg = aws.Config{Region: aws.String(svc.Region)}
 	return svc
 }
 
 // Init create the actual session to talk to the AWS API
 func (s *Service) Init() {
-	s.session = session.Must(session.NewSession(&s.Cfg))
-	s.Svc = awsssm.New(s.session)
+	cfg, err := config.LoadDefaultConfig(context.Background(), config.WithRegion(s.Region))
+	if err != nil {
+		fmt.Printf("AWS config load error: %s\n", err.Error())
+		os.Exit(1)
+	}
+	s.Cfg = cfg
+	s.Svc = awsssm.NewFromConfig(cfg)
 }

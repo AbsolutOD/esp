@@ -1,7 +1,7 @@
 package app
 
 import (
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"log"
 	"os"
@@ -15,7 +15,7 @@ func readEspFile(path string) espFile {
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v ", err)
 	}
-	err = yaml.Unmarshal(yamlFile, espFile)
+	err = yaml.Unmarshal(yamlFile, &espFile)
 	if err != nil {
 		log.Fatalf("Unmarshal: %v", err)
 	}
@@ -73,7 +73,7 @@ func TestWriteConfig(t *testing.T) {
 	tc.UpdateWithInput(ci)
 	testEsp := tc.createEspFile()
 
-	if checkEspFile(actualEsp, testEsp) {
+	if !checkEspFile(actualEsp, testEsp) {
 		t.Errorf("The written config didn't match the test input")
 	}
 }
