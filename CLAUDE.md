@@ -21,11 +21,11 @@ go test ./internal/app
 # Run a single test
 go test ./internal/app -run TestWriteConfig
 
-# Run with verbose logging (sets jwalterweatherman threshold to INFO)
+# Run with verbose logging (sets slog default level to INFO)
 ./esp --verbose <subcommand>
 ```
 
-`AWS_DEFAULT_REGION` and `AWS_PROFILE` must be set before invoking the binary — `cmd/root.go` exits with a non-zero status (1 and 2 respectively) if either is missing, so they are required even for `--help`.
+`AWS_DEFAULT_REGION` and `AWS_PROFILE` must be set before invoking any subcommand — `cmd/root.go`'s `initConfig` (run via `cobra.OnInitialize`) exits with non-zero status (1 and 2 respectively) if either is missing. They are NOT required for `esp --help` (cobra short-circuits before `initConfig`) or for `go test ./...`.
 
 ## Architecture
 
