@@ -21,7 +21,7 @@ go build -o esp .
 `esp` requires two AWS environment variables to be set before running any subcommand (other than `--help`):
 
 - `AWS_DEFAULT_REGION` — the AWS region to operate in.
-- `AWS_PROFILE` — the AWS profile to use. The standard AWS credential chain applies; setting `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` directly works as long as `AWS_PROFILE` is also defined.
+- `AWS_PROFILE` — must be set, but its value is only used by the AWS SDK's standard credential resolution chain. If you authenticate via `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`, you can set `AWS_PROFILE` to anything — `esp` checks only that the variable is non-empty.
 
 ### Per-project config: `.espFile`
 
@@ -47,7 +47,7 @@ When run inside a directory containing a `.espFile`, `esp` requires the `--env` 
 | `esp init` | | Initialize a `.espFile` in the current directory. |
 | `esp list` | `ls` | List parameters under a path. |
 | `esp get <name>` | | Read a single parameter. |
-| `esp put <name> <value>` | `add`, `create` | Write a parameter. |
+| `esp put --name <name> --value <value>` | `add`, `create` | Write a parameter. Add `--secure` to store as `SecureString`. |
 | `esp copy <src> <dst>` | `cp` | Copy a parameter to a new path. |
 | `esp move <src> <dst>` | `mv` | Move (copy then delete) a parameter. |
 | `esp delete <name>` | `rm` | Delete a parameter. |
@@ -73,9 +73,15 @@ List everything for one environment:
 esp --env=staging list
 ```
 
-## Verbose logging
+Store a secret as a SecureString parameter:
 
-Pass `--verbose` to enable `slog` INFO-level output to stderr:
+```sh
+esp --env=prod put --name DB_PASSWORD --value "$(pbpaste)" --secure
+```
+
+## Logging
+
+`esp` logs to stderr via Go's `slog`. The default level is WARN. Pass `--verbose` to lower the threshold to INFO so you can see what `esp` is doing under the hood:
 
 ```sh
 esp --verbose --env=dev list
