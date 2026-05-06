@@ -58,15 +58,20 @@ var getCmd = &cobra.Command{
 	Short: "Query path for SSM",
 	Long:  `Allows you to get a specific ssm parameter with an exact path or recursively get params.`,
 	Args:  cobra.MinimumNArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
+		cmd.SilenceUsage = true
 		decrypt, _ := cmd.Flags().GetBool("decrypt")
 		details, _ := cmd.Flags().GetBool("details")
 
-		param := c.GetParam(common.GetOneInput{
+		param, err := c.GetParam(common.GetOneInput{
 			Name:    getParamPath(args[0]),
 			Decrypt: decrypt,
 		})
+		if err != nil {
+			return err
+		}
 		display(param, details)
+		return nil
 	},
 }
 

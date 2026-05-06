@@ -9,12 +9,14 @@ func initCmd() *cobra.Command {
 	var initCmd = &cobra.Command{
 		Use:   "init",
 		Short: "Initializes the current directory to be an ESP based application.",
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.SilenceUsage = true
 			esp.InitQuestions()
+			return nil
 		},
 	}
 
-	return  initCmd
+	return initCmd
 }
 
 func init() {

@@ -15,14 +15,19 @@ var moveCmd = &cobra.Command{
 	Short:   "move a parameter by path in SSM",
 	Long:    `Allows you to move a specific ssm parameter with an exact path.`,
 	Args:    cobra.MinimumNArgs(2),
-	Run: func(cmd *cobra.Command, args []string) {
-		p := c.Move(common.MoveCommand{
+	RunE: func(cmd *cobra.Command, args []string) error {
+		cmd.SilenceUsage = true
+		p, err := c.Move(common.MoveCommand{
 			Source:      args[0],
 			Destination: args[1],
 		})
+		if err != nil {
+			return err
+		}
 		src := aurora.BrightYellow(p.Source)
 		dest := aurora.BrightYellow(p.Destination)
 		fmt.Printf("%s => %s\n", src, dest)
+		return nil
 	},
 }
 

@@ -62,7 +62,3 @@ func (c *Config) InitQuestions() {
 		fmt.Printf("Error writing file: %s", err)
 	}
 }
-
-func (c *Config) setPrefixes() {
-
-}

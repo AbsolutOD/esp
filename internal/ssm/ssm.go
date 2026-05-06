@@ -2,8 +2,6 @@ package ssm
 
 import (
 	"context"
-	"fmt"
-	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -30,8 +28,18 @@ type Service struct {
 	Cfg    aws.Config
 }
 
+// mapErr applies the per-action error mapper. If the mapper returns
+// nil (the error wasn't a recognized AWS error type), return the raw
+// error so the caller still sees the failure.
+func mapErr(a action, err error) error {
+	if mapped := checkSSMError(a, err); mapped != nil {
+		return mapped
+	}
+	return err
+}
+
 // Save a single param for a given path
-func (s *Service) Save(p common.EspParamInput) common.SaveOutput {
+func (s *Service) Save(p common.EspParamInput) (common.SaveOutput, error) {
 	pi := &awsssm.PutParameterInput{
 		Type:  selectType(p.Secure),
 		Name:  aws.String(p.Name),
@@ -39,88 +47,68 @@ func (s *Service) Save(p common.EspParamInput) common.SaveOutput {
 	}
 	param, err := s.Svc.PutParameter(context.Background(), pi)
 	if err != nil {
-		handleAwsErr(Save, err)
+		return common.SaveOutput{}, mapErr(Save, err)
 	}
-	return common.SaveOutput{Version: param.Version}
+	return common.SaveOutput{Version: param.Version}, nil
 }
 
 // Delete a single param for a given path
-func (s *Service) Delete(p common.DeleteInput) string {
+func (s *Service) Delete(p common.DeleteInput) (string, error) {
 	dpi := &awsssm.DeleteParameterInput{
 		Name: aws.String(p.Name),
 	}
 	_, err := s.Svc.DeleteParameter(context.Background(), dpi)
 	if err != nil {
-		handleAwsErr(Delete, err)
+		return "", mapErr(Delete, err)
 	}
-	return p.Name
+	return p.Name, nil
 }
 
 // GetOne gets a single param for a given path
-func (s *Service) GetOne(p common.GetOneInput) common.EspParam {
+func (s *Service) GetOne(p common.GetOneInput) (common.EspParam, error) {
 	si := &awsssm.GetParameterInput{
 		Name:           aws.String(p.Name),
 		WithDecryption: aws.Bool(p.Decrypt),
 	}
 	resp, err := s.Svc.GetParameter(context.Background(), si)
 	if err != nil {
-		handleAwsErr(Get, err)
+		return common.EspParam{}, mapErr(Get, err)
 	}
-	return convertToEspParam(*resp.Parameter)
+	return convertToEspParam(*resp.Parameter), nil
 }
 
 // GetMany recursively gets parameters from a given path
-func (s *Service) GetMany(p common.ListParamInput) []common.EspParam {
+func (s *Service) GetMany(p common.ListParamInput) ([]common.EspParam, error) {
 	si := &awsssm.GetParametersByPathInput{
 		Path:           aws.String(p.Path),
 		WithDecryption: aws.Bool(p.Decrypt),
 		Recursive:      aws.Bool(p.Recursive),
 	}
-	params, err := s.Svc.GetParametersByPath(context.Background(), si)
-	if err != nil {
-		handleAwsErr(GetMany, err)
-	}
+	paginator := awsssm.NewGetParametersByPathPaginator(s.Svc, si)
 
 	var espParams []common.EspParam
-	for _, v := range params.Parameters {
-		espParams = append(espParams, convertToEspParam(v))
+	for paginator.HasMorePages() {
+		page, err := paginator.NextPage(context.Background())
+		if err != nil {
+			return nil, mapErr(GetMany, err)
+		}
+		for _, v := range page.Parameters {
+			espParams = append(espParams, convertToEspParam(v))
+		}
 	}
-
-	if params.NextToken != nil {
-		si.NextToken = params.NextToken
-		moreParams := s.getNextParams(si)
-		espParams = append(espParams, moreParams...)
-	}
-	return espParams
-}
-
-// getNextParams uses the NextToken to get more params
-func (s *Service) getNextParams(pi *awsssm.GetParametersByPathInput) []common.EspParam {
-	params, err := s.Svc.GetParametersByPath(context.Background(), pi)
-	if err != nil {
-		handleAwsErr(GetMany, err)
-	}
-
-	var espParams []common.EspParam
-	for _, v := range params.Parameters {
-		espParams = append(espParams, convertToEspParam(v))
-	}
-
-	if params.NextToken != nil {
-		pi.NextToken = params.NextToken
-		moreParams := s.getNextParams(pi)
-		espParams = append(espParams, moreParams...)
-	}
-	return espParams
+	return espParams, nil
 }
 
 // Copy method copies the given parameter to a new location
-func (s *Service) Copy(cc common.CopyCommand) common.SaveOutput {
+func (s *Service) Copy(cc common.CopyCommand) (common.SaveOutput, error) {
 	input := common.GetOneInput{
 		Name:    cc.Source,
 		Decrypt: true,
 	}
-	sparam := s.GetOne(input)
+	sparam, err := s.GetOne(input)
+	if err != nil {
+		return common.SaveOutput{}, err
+	}
 
 	dparam := common.EspParamInput{
 		Name:   cc.Destination,
@@ -138,12 +126,12 @@ func New() *Service {
 }
 
 // Init create the actual session to talk to the AWS API
-func (s *Service) Init() {
+func (s *Service) Init() error {
 	cfg, err := config.LoadDefaultConfig(context.Background(), config.WithRegion(s.Region))
 	if err != nil {
-		fmt.Printf("AWS config load error: %s\n", err.Error())
-		os.Exit(1)
+		return err
 	}
 	s.Cfg = cfg
 	s.Svc = awsssm.NewFromConfig(cfg)
+	return nil
 }
