@@ -12,7 +12,11 @@ func formatParamName(n string) string {
 	if strings.HasPrefix(n, esp.OrgPrefix) {
 		return n
 	}
-	return esp.OrgPrefix + "_" + strings.ToUpper(n)
+	// SSM allows hyphens in parameter names, but esp's purpose is to
+	// surface params as environment variables, where hyphens are not
+	// valid. Normalize them to underscores alongside the upcasing.
+	normalized := strings.ReplaceAll(strings.ToUpper(n), "-", "_")
+	return esp.OrgPrefix + "_" + normalized
 }
 
 func getFullPath(n string) string {
