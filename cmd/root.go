@@ -25,7 +25,6 @@ var rootCmd = &cobra.Command{
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
 		os.Exit(1)
 	}
 }
@@ -34,7 +33,8 @@ func init() {
 	esp = app.New(false)
 	// setting this to SSM just to make the interface nicer, since we only have the SSM backend
 	esp.Backend = "ssm"
-	cobra.OnInitialize(initConfig)
+	cobra.OnInitialize(configureLogging)
+	rootCmd.PersistentPreRunE = persistentPreRun
 
 	// CLI args
 	rootCmd.PersistentFlags().StringVarP(&esp.Env, "env", "e", "", "Declare the env to work on.")
@@ -42,30 +42,34 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&verbose, "verbose", false, "Show more output")
 }
 
-// initConfig reads in config file and ENV variables if set.
-// Runs via cobra.OnInitialize before any subcommand executes; not invoked
-// for --help, so help output works without AWS credentials.
-func initConfig() {
+// configureLogging sets the slog default handler. No I/O, no failure
+// path. Runs via cobra.OnInitialize, which is skipped for --help.
+func configureLogging() {
 	level := slog.LevelWarn
 	if verbose {
 		level = slog.LevelInfo
 	}
 	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: level})))
+}
+
+// persistentPreRun validates AWS env vars, constructs the backend
+// client, reads the .espFile, and (when one is present) marks --env
+// required. Cobra short-circuits before PersistentPreRunE for --help,
+// so help output still works without AWS credentials.
+func persistentPreRun(cmd *cobra.Command, args []string) error {
+	cmd.SilenceUsage = true
 
 	if _, ok := os.LookupEnv("AWS_DEFAULT_REGION"); !ok {
-		fmt.Println("Please set the AWS_DEFAULT_REGION environment variable.")
-		os.Exit(1)
+		return fmt.Errorf("AWS_DEFAULT_REGION environment variable is not set")
 	}
 	if _, ok := os.LookupEnv("AWS_PROFILE"); !ok {
-		fmt.Println("Please set the AWS_PROFILE environment variable.")
-		os.Exit(2)
+		return fmt.Errorf("AWS_PROFILE environment variable is not set")
 	}
 
 	var err error
 	c, err = client.New(esp)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		return err
 	}
 
 	viper.SetConfigName(esp.Filename)
@@ -78,16 +82,11 @@ func initConfig() {
 
 	if esp.IsEspProject {
 		if err := viper.Unmarshal(&esp); err != nil {
-			fmt.Printf("Error parsing the %s\n", esp.Filename)
+			return fmt.Errorf("parsing %s: %w", esp.Filename, err)
 		}
-		// not going to force this at the moment.  I will add this when I have a second backend
-		/*if err := rootCmd.MarkFlagRequired("backend"); err != nil {
-			//fmt.Printf("There is an %s.yaml defined, so you need to set --env arg.\n", esp.Filename)
-			os.Exit(3)
-		}*/
 		if err := rootCmd.MarkFlagRequired("env"); err != nil {
-			//fmt.Printf("There is an %s.yaml defined, so you need to set --env arg.\n", esp.Filename)
-			os.Exit(3)
+			return fmt.Errorf("marking --env required: %w", err)
 		}
 	}
+	return nil
 }
