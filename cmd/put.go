@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/pinpt/esp/internal/common"
+	"os"
 	"strings"
 
+	"github.com/pinpt/esp/internal/common"
 	"github.com/spf13/cobra"
 )
 
@@ -44,10 +45,17 @@ var putCmd = &cobra.Command{
 	Long: `Simple command to add values to SSM parameter store.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		param := buildEspParamInputFromCmd(cmd)
-		c.Save(param)
-		savedParam := c.GetParam(common.GetOneInput{
+		if _, err := c.Save(param); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		savedParam, err := c.GetParam(common.GetOneInput{
 			Name: param.Name,
 		})
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
 		detailDisplay(savedParam)
 	},
 }

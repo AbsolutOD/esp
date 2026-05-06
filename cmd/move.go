@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/logrusorgru/aurora/v4"
 	"github.com/pinpt/esp/internal/common"
@@ -16,10 +17,14 @@ var moveCmd = &cobra.Command{
 	Long:    `Allows you to move a specific ssm parameter with an exact path.`,
 	Args:    cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
-		p := c.Move(common.MoveCommand{
+		p, err := c.Move(common.MoveCommand{
 			Source:      args[0],
 			Destination: args[1],
 		})
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
 		src := aurora.BrightYellow(p.Source)
 		dest := aurora.BrightYellow(p.Destination)
 		fmt.Printf("%s => %s\n", src, dest)

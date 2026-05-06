@@ -27,7 +27,10 @@ var copyCmd = &cobra.Command{
 			Source:     args[0],
 			Destination: args[1],
 		}
-		c.Copy(cc)
+		if _, err := c.Copy(cc); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
 	},
 	Example: "esp cp /ssm/path/key /ssm/new/path/key",
 }

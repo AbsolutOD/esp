@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/pinpt/esp/internal/client"
 	"github.com/pinpt/esp/internal/common"
 
@@ -23,13 +25,17 @@ func getPath(a []string) string {
 	return a[0]
 }
 
-func listParams(cmd *cobra.Command, c *client.EspClient, path string)  {
+func listParams(cmd *cobra.Command, c *client.EspClient, path string) {
 	decrypt, _ := cmd.Flags().GetBool("decrypt")
-	params := c.ListParams(common.ListParamInput{
+	params, err := c.ListParams(common.ListParamInput{
 		Path:      path,
 		Decrypt:   decrypt,
 		Recursive: true,
 	})
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 	displayParams(params)
 }
 

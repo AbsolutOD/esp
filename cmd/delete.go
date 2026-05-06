@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/logrusorgru/aurora/v4"
 	"github.com/pinpt/esp/internal/common"
 	"github.com/spf13/cobra"
@@ -15,9 +17,13 @@ var deleteCmd = &cobra.Command{
 	Long:  `Allows you to delete a specific ssm parameter with an exact path.`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		param := c.Delete(common.DeleteInput{
+		param, err := c.Delete(common.DeleteInput{
 			Name:    args[0],
 		})
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
 		name := aurora.BrightYellow(param)
 		fmt.Printf("Deleted: %s\n", name)
 	},
