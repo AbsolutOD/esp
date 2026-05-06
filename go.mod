@@ -1,4 +1,4 @@
-module github.com/pinpt/esp
+module github.com/AbsolutOD/esp
 
 go 1.26
 

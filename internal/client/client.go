@@ -3,9 +3,9 @@ package client
 import (
 	"fmt"
 
-	"github.com/pinpt/esp/internal/app"
-	"github.com/pinpt/esp/internal/common"
-	"github.com/pinpt/esp/internal/ssm"
+	"github.com/AbsolutOD/esp/internal/app"
+	"github.com/AbsolutOD/esp/internal/common"
+	"github.com/AbsolutOD/esp/internal/ssm"
 )
 
 // Client the main interface that is defined by the backend implementation.

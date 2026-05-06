@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pinpt/esp/internal/common"
+	"github.com/AbsolutOD/esp/internal/common"
 	"github.com/spf13/cobra"
 )
 

@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/pinpt/esp/internal/app"
-	"github.com/pinpt/esp/internal/client"
+	"github.com/AbsolutOD/esp/internal/app"
+	"github.com/AbsolutOD/esp/internal/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
