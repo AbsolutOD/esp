@@ -61,7 +61,12 @@ func initConfig() {
 		os.Exit(2)
 	}
 
-	c = client.New(esp)
+	var err error
+	c, err = client.New(esp)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 
 	viper.SetConfigName(esp.Filename)
 	viper.AddConfigPath(esp.Path)

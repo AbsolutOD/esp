@@ -1,6 +1,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/pinpt/esp/internal/app"
 	"github.com/pinpt/esp/internal/common"
 	"github.com/pinpt/esp/internal/ssm"
@@ -22,17 +24,16 @@ type EspClient struct {
 }
 
 // New creates a new instance of the Client for esp
-func New(c *app.Config) *EspClient {
-	if c.Backend == "ssm" {
-		svc := ssm.New()
-		svc.Init()
-		return &EspClient{
-			Backend: c.Backend,
-			Client: svc,
-		}
-	} else {
-		panic("Currently only the ssm backend is valid.")
+func New(c *app.Config) (*EspClient, error) {
+	if c.Backend != "ssm" {
+		return nil, fmt.Errorf("unsupported backend %q", c.Backend)
 	}
+	svc := ssm.New()
+	svc.Init()
+	return &EspClient{
+		Backend: c.Backend,
+		Client:  svc,
+	}, nil
 }
 
 // GetParam Queries the ssm param
