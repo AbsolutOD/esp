@@ -55,4 +55,8 @@ Implement the `client.Client` interface (`internal/client/client.go`) in a new p
 
 ## Testing notes
 
-`cmd/get_test.go`, `cmd/put_test.go`, `internal/app/config_test.go`, and `internal/client/client_test.go` are empty stub files (package declaration only) — they exist to satisfy the test runner in forks. Real tests live in `cmd/list_test.go` and `internal/app/init_test.go`.
+Tests use stdlib `testing` only (no testify). Table-driven where the function has multiple distinct cases. One `_test.go` file per package, alongside the file under test. The bar is: every pure function reachable from a subcommand has a happy-path test plus its meaningful edge cases.
+
+Functions that exist only for side effects against AWS — `Service.Save` / `GetOne` / `GetMany` / `Copy` / `Delete`, the `EspClient` wrappers in `internal/client/`, and `Service.Init` — are intentionally not unit-tested. Exercising them requires either real AWS credentials or a dependency-injection seam that doesn't exist yet. The `client.New` test (`internal/client/client_test.go`) covers only the unsupported-backend path for that reason.
+
+The `cmd` package shares two package-level globals (`esp *app.Config` and `c *client.EspClient`) across subcommands. Tests that depend on them use the local `withOrgPrefix` and `withAppConfig` helpers in `cmd/put_test.go` and `cmd/get_test.go` to swap values in and restore them via `t.Cleanup`.
