@@ -84,46 +84,17 @@ func (s *Service) GetMany(p common.ListParamInput) ([]common.EspParam, error) {
 		WithDecryption: aws.Bool(p.Decrypt),
 		Recursive:      aws.Bool(p.Recursive),
 	}
-	params, err := s.Svc.GetParametersByPath(context.Background(), si)
-	if err != nil {
-		return nil, mapErr(GetMany, err)
-	}
+	paginator := awsssm.NewGetParametersByPathPaginator(s.Svc, si)
 
 	var espParams []common.EspParam
-	for _, v := range params.Parameters {
-		espParams = append(espParams, convertToEspParam(v))
-	}
-
-	if params.NextToken != nil {
-		si.NextToken = params.NextToken
-		moreParams, err := s.getNextParams(si)
+	for paginator.HasMorePages() {
+		page, err := paginator.NextPage(context.Background())
 		if err != nil {
-			return nil, err
+			return nil, mapErr(GetMany, err)
 		}
-		espParams = append(espParams, moreParams...)
-	}
-	return espParams, nil
-}
-
-// getNextParams uses the NextToken to get more params
-func (s *Service) getNextParams(pi *awsssm.GetParametersByPathInput) ([]common.EspParam, error) {
-	params, err := s.Svc.GetParametersByPath(context.Background(), pi)
-	if err != nil {
-		return nil, mapErr(GetMany, err)
-	}
-
-	var espParams []common.EspParam
-	for _, v := range params.Parameters {
-		espParams = append(espParams, convertToEspParam(v))
-	}
-
-	if params.NextToken != nil {
-		pi.NextToken = params.NextToken
-		moreParams, err := s.getNextParams(pi)
-		if err != nil {
-			return nil, err
+		for _, v := range page.Parameters {
+			espParams = append(espParams, convertToEspParam(v))
 		}
-		espParams = append(espParams, moreParams...)
 	}
 	return espParams, nil
 }
