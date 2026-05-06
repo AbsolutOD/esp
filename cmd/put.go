@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/pinpt/esp/internal/common"
@@ -39,24 +38,24 @@ func buildEspParamInputFromCmd(cmd *cobra.Command) common.EspParamInput {
 
 // putCmd stores the parameter in the backend store
 var putCmd = &cobra.Command{
-	Use:   "put",
+	Use:     "put",
 	Aliases: []string{"add", "create"},
-	Short: "Creates an SSM parameter with the given value.",
-	Long: `Simple command to add values to SSM parameter store.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Short:   "Creates an SSM parameter with the given value.",
+	Long:    `Simple command to add values to SSM parameter store.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		cmd.SilenceUsage = true
 		param := buildEspParamInputFromCmd(cmd)
 		if _, err := c.Save(param); err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
+			return err
 		}
 		savedParam, err := c.GetParam(common.GetOneInput{
 			Name: param.Name,
 		})
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
+			return err
 		}
 		detailDisplay(savedParam)
+		return nil
 	},
 }
 

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/pinpt/esp/internal/client"
 	"github.com/pinpt/esp/internal/common"
@@ -25,7 +24,7 @@ func getPath(a []string) string {
 	return a[0]
 }
 
-func listParams(cmd *cobra.Command, c *client.EspClient, path string) {
+func listParams(cmd *cobra.Command, c *client.EspClient, path string) error {
 	decrypt, _ := cmd.Flags().GetBool("decrypt")
 	params, err := c.ListParams(common.ListParamInput{
 		Path:      path,
@@ -33,10 +32,10 @@ func listParams(cmd *cobra.Command, c *client.EspClient, path string) {
 		Recursive: true,
 	})
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		return err
 	}
 	displayParams(params)
+	return nil
 }
 
 // listCmd represents the list command
@@ -45,11 +44,12 @@ func listCmd() *cobra.Command {
 		Use:     "list [path]",
 		Aliases: []string{"ls"},
 		Short:   "Recursively list a SSM path if given.",
-		Long:    `The list command gives you an easy way to recursively get all SSM parameters with a base path.
+		Long: `The list command gives you an easy way to recursively get all SSM parameters with a base path.
 If you have a .espFile.yaml in the current directory this command will list all params under the project path.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.SilenceUsage = true
 			path := getPath(args)
-			listParams(cmd, c, path)
+			return listParams(cmd, c, path)
 		},
 	}
 	return listCmd

@@ -10,8 +10,10 @@ import (
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Version of esp",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
+		cmd.SilenceUsage = true
 		fmt.Println("ESP version 0.2.0")
+		return nil
 	},
 }
 
