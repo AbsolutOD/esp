@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/pinpt/esp/internal/common"
+	"github.com/AbsolutOD/esp/internal/common"
 	"os"
 	"strconv"
 	"strings"

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/pinpt/esp/internal/utils"
+	"github.com/AbsolutOD/esp/internal/utils"
 )
 
 type Config struct {

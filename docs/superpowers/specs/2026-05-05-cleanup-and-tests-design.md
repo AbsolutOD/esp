@@ -162,5 +162,5 @@ Per commit and at end of each PR:
 ## Risks
 
 - **Cobra error-printing format change.** With `RunE`, cobra's default behavior prints `Error: <msg>` to stderr followed by the command usage. We mitigate by setting `cmd.SilenceUsage = true` as the first line of every `RunE` — usage prints only on misuse (which fires before `RunE`), not on runtime errors. The `Error:` prefix on the message is a small UX change from the current bare-`fmt.Println` style; acceptable.
-- **Public-API change to `client.New`'s signature.** Anyone importing `github.com/pinpt/esp/internal/client` as a library would break. The `internal/` directory restricts that to the module itself, so the practical blast radius is zero. Flagged for completeness.
+- **Public-API change to `client.New`'s signature.** Anyone importing `github.com/AbsolutOD/esp/internal/client` as a library would break. The `internal/` directory restricts that to the module itself, so the practical blast radius is zero. Flagged for completeness.
 - **Exit-code collapse.** Codes `2` (missing `AWS_PROFILE`) and `3` (`MarkFlagRequired` failure) collapse to `1`. These were undocumented and look incidental rather than designed. If anything depends on `$?`, it would already be brittle.

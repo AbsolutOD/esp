@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/pinpt/esp/internal/client"
-	"github.com/pinpt/esp/internal/common"
+	"github.com/AbsolutOD/esp/internal/client"
+	"github.com/AbsolutOD/esp/internal/common"
 
 	"github.com/logrusorgru/aurora/v4"
 	"github.com/spf13/cobra"

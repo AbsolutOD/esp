@@ -6,8 +6,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	awsssm "github.com/aws/aws-sdk-go-v2/service/ssm"
-	"github.com/pinpt/esp/internal/common"
-	"github.com/pinpt/esp/internal/utils"
+	"github.com/AbsolutOD/esp/internal/common"
+	"github.com/AbsolutOD/esp/internal/utils"
 )
 
 type action string
