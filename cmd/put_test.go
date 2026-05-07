@@ -20,13 +20,13 @@ func withOrgPrefix(t *testing.T, prefix string) {
 	t.Cleanup(func() { esp.OrgPrefix = prev })
 }
 
-// TestEspName pins formatParamName's actual rule:
+// TestEspName pins formatParamName's rule:
 //
 //	if HasPrefix(n, OrgPrefix) -> n unchanged
-//	else                       -> OrgPrefix + "_" + ToUpper(n)
+//	else                       -> OrgPrefix + "_" + ReplaceAll(ToUpper(n), "-", "_")
 //
-// Hyphens are NOT converted to underscores; ToUpper is the only
-// transform applied.
+// Hyphens are normalized to underscores so the resulting name is a
+// valid environment variable identifier.
 func TestEspName(t *testing.T) {
 	withOrgPrefix(t, "ACME")
 
@@ -46,9 +46,14 @@ func TestEspName(t *testing.T) {
 			want: "ACME_FOO",
 		},
 		{
-			name: "hyphenated input is uppercased; hyphens are preserved (not converted to underscores)",
+			name: "hyphenated input is uppercased and hyphens become underscores",
 			in:   "foo-bar",
-			want: "ACME_FOO-BAR",
+			want: "ACME_FOO_BAR",
+		},
+		{
+			name: "multiple hyphens all convert to underscores",
+			in:   "foo-bar-baz",
+			want: "ACME_FOO_BAR_BAZ",
 		},
 		{
 			name: "mixed case input is fully uppercased",
@@ -64,6 +69,11 @@ func TestEspName(t *testing.T) {
 			name: "uppercase non-prefixed input still gets prefix",
 			in:   "FOO",
 			want: "ACME_FOO",
+		},
+		{
+			name: "already-prefixed input keeps its hyphens (HasPrefix branch returns verbatim)",
+			in:   "ACME-LEGACY-NAME",
+			want: "ACME-LEGACY-NAME",
 		},
 	}
 

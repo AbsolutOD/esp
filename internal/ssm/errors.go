@@ -143,5 +143,9 @@ func checkSSMByPathError(err error) error {
 	if errors.As(err, &invalidNextToken) {
 		return err
 	}
+	var apiErr smithy.APIError
+	if errors.As(err, &apiErr) {
+		return err
+	}
 	return nil
 }

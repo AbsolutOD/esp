@@ -132,9 +132,6 @@ func TestCheckDeleteParameterError(t *testing.T) {
 	}
 }
 
-// checkSSMByPathError differs from the others: it does NOT have a
-// trailing smithy.APIError fallback, so a generic API error returns
-// nil rather than passing through. The test pins this asymmetry.
 func TestCheckSSMByPathError(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -148,7 +145,7 @@ func TestCheckSSMByPathError(t *testing.T) {
 		{name: "InvalidFilterValue", err: &ssmtypes.InvalidFilterValue{}, wantSelf: true},
 		{name: "InvalidKeyId", err: &ssmtypes.InvalidKeyId{}, wantSelf: true},
 		{name: "InvalidNextToken", err: &ssmtypes.InvalidNextToken{}, wantSelf: true},
-		{name: "generic smithy.APIError returns nil (no fallback in this function)", err: genericAPIErr(), wantNil: true},
+		{name: "generic smithy.APIError falls through and is returned", err: genericAPIErr(), wantSelf: true},
 		{name: "plain non-API error returns nil", err: plainErr(), wantNil: true},
 		{name: "nil input returns nil", err: nil, wantNil: true},
 	}
