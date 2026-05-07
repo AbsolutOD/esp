@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 )
 
@@ -75,5 +76,112 @@ func TestWriteConfig(t *testing.T) {
 
 	if !checkEspFile(actualEsp, testEsp) {
 		t.Errorf("The written config didn't match the test input")
+	}
+}
+
+func TestUpdateWithInput(t *testing.T) {
+	tests := []struct {
+		name     string
+		envs     string
+		wantEnvs []string
+	}{
+		{
+			name:     "no whitespace",
+			envs:     "dev,test,prod",
+			wantEnvs: []string{"dev", "test", "prod"},
+		},
+		{
+			name:     "single trailing space after each comma",
+			envs:     "dev, test, prod",
+			wantEnvs: []string{"dev", "test", "prod"},
+		},
+		{
+			name:     "multiple trailing spaces after each comma",
+			envs:     "dev,   test,  prod",
+			wantEnvs: []string{"dev", "test", "prod"},
+		},
+		{
+			name:     "single env",
+			envs:     "dev",
+			wantEnvs: []string{"dev"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			c := Config{}
+			c.UpdateWithInput(configInput{
+				Backend:   "ssm",
+				OrgName:   "acme",
+				OrgPrefix: "ACME",
+				AppName:   "billing",
+				Envs:      tc.envs,
+			})
+			if c.Backend != "ssm" || c.OrgName != "acme" || c.OrgPrefix != "ACME" || c.AppName != "billing" {
+				t.Errorf("scalar fields not copied: got %+v", c)
+			}
+			if !reflect.DeepEqual(c.Envs, tc.wantEnvs) {
+				t.Errorf("Envs = %#v, want %#v", c.Envs, tc.wantEnvs)
+			}
+		})
+	}
+}
+
+func TestCreateEspFile(t *testing.T) {
+	tests := []struct {
+		name string
+		cfg  Config
+		want espFile
+	}{
+		{
+			name: "fully populated",
+			cfg: Config{
+				Backend:   "ssm",
+				OrgName:   "acme",
+				OrgPrefix: "ACME",
+				AppName:   "billing",
+				Envs:      []string{"dev", "test", "prod"},
+			},
+			want: espFile{
+				Backend:   "ssm",
+				OrgName:   "acme",
+				OrgPrefix: "ACME",
+				AppName:   "billing",
+				Envs:      []string{"dev", "test", "prod"},
+			},
+		},
+		{
+			name: "zero value Config produces zero value espFile",
+			cfg:  Config{},
+			want: espFile{},
+		},
+		{
+			name: "non-espFile fields on Config are not copied",
+			cfg: Config{
+				Backend:      "ssm",
+				OrgName:      "acme",
+				AppName:      "billing",
+				Envs:         []string{"dev"},
+				IsEspProject: true,
+				Env:          "dev",
+				Path:         "/tmp/somewhere",
+				Filename:     ".espFile",
+			},
+			want: espFile{
+				Backend: "ssm",
+				OrgName: "acme",
+				AppName: "billing",
+				Envs:    []string{"dev"},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := tc.cfg.createEspFile()
+			if !reflect.DeepEqual(got, tc.want) {
+				t.Errorf("createEspFile() = %#v, want %#v", got, tc.want)
+			}
+		})
 	}
 }
