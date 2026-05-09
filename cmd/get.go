@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/AbsolutOD/esp/internal/common"
 	"os"
 	"strconv"
 	"strings"
 
+	"github.com/AbsolutOD/esp/internal/app"
+	"github.com/AbsolutOD/esp/internal/client"
+	"github.com/AbsolutOD/esp/internal/common"
 	"github.com/logrusorgru/aurora/v4"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
@@ -45,38 +47,42 @@ func detailDisplay(p common.EspParam) {
 	}
 }
 
-func getParamPath(p string) string {
+// getParamPath resolves an argument to a full SSM path. Leading "/"
+// means the caller passed a literal path; everything else is routed
+// through the project-aware GetAppParamPath.
+func getParamPath(cfg *app.Config, p string) string {
 	if strings.HasPrefix(p, "/") {
 		return p
 	}
-	return esp.GetAppParamPath(p)
+	return cfg.GetAppParamPath(p)
 }
 
-// getCmd gets the parameter from the backend store
-var getCmd = &cobra.Command{
-	Use:   "get [path]",
-	Short: "Query path for SSM",
-	Long:  `Allows you to get a specific ssm parameter with an exact path or recursively get params.`,
-	Args:  cobra.MinimumNArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		cmd.SilenceUsage = true
-		decrypt, _ := cmd.Flags().GetBool("decrypt")
-		details, _ := cmd.Flags().GetBool("details")
-
-		param, err := c.GetParam(common.GetOneInput{
-			Name:    getParamPath(args[0]),
-			Decrypt: decrypt,
-		})
-		if err != nil {
-			return err
-		}
-		display(param, details)
-		return nil
-	},
+func newGetCmd(a *App) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "get [path]",
+		Short: "Query path for SSM",
+		Long:  `Allows you to get a specific ssm parameter with an exact path or recursively get params.`,
+		Args:  cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.SilenceUsage = true
+			return runGet(cmd, args, a.Client, a.Config)
+		},
+	}
+	cmd.Flags().BoolP("details", "t", false, "Show all of the attributes of a parameter.")
+	cmd.Flags().BoolP("decrypt", "d", false, "Decrypt SSM secure strings.")
+	return cmd
 }
 
-func init() {
-	rootCmd.AddCommand(getCmd)
-	getCmd.Flags().BoolP("details", "t", false, "Show all of the attributes of a parameter.")
-	getCmd.Flags().BoolP("decrypt", "d", false, "Decrypt SSM secure strings.")
+func runGet(cmd *cobra.Command, args []string, c *client.EspClient, cfg *app.Config) error {
+	decrypt, _ := cmd.Flags().GetBool("decrypt")
+	details, _ := cmd.Flags().GetBool("details")
+	param, err := c.GetParam(common.GetOneInput{
+		Name:    getParamPath(cfg, args[0]),
+		Decrypt: decrypt,
+	})
+	if err != nil {
+		return err
+	}
+	display(param, details)
+	return nil
 }

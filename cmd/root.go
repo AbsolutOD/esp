@@ -11,40 +11,53 @@ import (
 	"github.com/spf13/viper"
 )
 
-var verbose bool
-var esp *app.Config
-var c *client.EspClient
-
-// rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
-	Use:   "esp",
-	Short: "A utility to browse and export SSM Parameter values into different formats.",
+// App holds the runtime dependencies threaded into every subcommand.
+// Config is populated at construction; Client is populated by the root
+// command's PersistentPreRunE after env-var validation succeeds.
+type App struct {
+	Config  *app.Config
+	Client  *client.EspClient
+	Verbose bool
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
+// Execute is the entry point invoked by main. It builds the App,
+// constructs the cobra tree around it, and runs.
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	a := &App{Config: app.New(false)}
+	a.Config.Backend = "ssm"
+	root := newRootCmd(a)
+	root.AddCommand(
+		newGetCmd(a),
+		newPutCmd(a),
+		newListCmd(a),
+		newCopyCmd(a),
+		newMoveCmd(a),
+		newDeleteCmd(a),
+		newInitCmd(a),
+		newVersionCmd(),
+	)
+	if err := root.Execute(); err != nil {
 		os.Exit(1)
 	}
 }
 
-func init() {
-	esp = app.New(false)
-	// setting this to SSM just to make the interface nicer, since we only have the SSM backend
-	esp.Backend = "ssm"
-	cobra.OnInitialize(configureLogging)
-	rootCmd.PersistentPreRunE = persistentPreRun
-
-	// CLI args
-	rootCmd.PersistentFlags().StringVarP(&esp.Env, "env", "e", "", "Declare the env to work on.")
-	rootCmd.PersistentFlags().StringVarP(&esp.Backend, "backend", "b", "ssm", "Set which backend to use.")
-	rootCmd.PersistentFlags().BoolVar(&verbose, "verbose", false, "Show more output")
+// newRootCmd builds the root cobra command bound to the given App.
+func newRootCmd(a *App) *cobra.Command {
+	root := &cobra.Command{
+		Use:   "esp",
+		Short: "A utility to browse and export SSM Parameter values into different formats.",
+	}
+	cobra.OnInitialize(func() { configureLogging(a.Verbose) })
+	root.PersistentPreRunE = persistentPreRunE(a)
+	root.PersistentFlags().StringVarP(&a.Config.Env, "env", "e", "", "Declare the env to work on.")
+	root.PersistentFlags().StringVarP(&a.Config.Backend, "backend", "b", "ssm", "Set which backend to use.")
+	root.PersistentFlags().BoolVar(&a.Verbose, "verbose", false, "Show more output")
+	return root
 }
 
 // configureLogging sets the slog default handler. No I/O, no failure
 // path. Runs via cobra.OnInitialize, which is skipped for --help.
-func configureLogging() {
+func configureLogging(verbose bool) {
 	level := slog.LevelWarn
 	if verbose {
 		level = slog.LevelInfo
@@ -52,41 +65,42 @@ func configureLogging() {
 	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: level})))
 }
 
-// persistentPreRun validates AWS env vars, constructs the backend
-// client, reads the .espFile, and (when one is present) marks --env
-// required. Cobra short-circuits before PersistentPreRunE for --help,
-// so help output still works without AWS credentials.
-func persistentPreRun(cmd *cobra.Command, args []string) error {
-	cmd.SilenceUsage = true
+// persistentPreRunE returns the closure that validates AWS env vars,
+// constructs the backend client, and reads the .espFile. Cobra
+// short-circuits before PersistentPreRunE for --help, so help still
+// works without AWS credentials.
+func persistentPreRunE(a *App) func(*cobra.Command, []string) error {
+	return func(cmd *cobra.Command, args []string) error {
+		cmd.SilenceUsage = true
 
-	if _, ok := os.LookupEnv("AWS_DEFAULT_REGION"); !ok {
-		return fmt.Errorf("AWS_DEFAULT_REGION environment variable is not set")
-	}
-	if _, ok := os.LookupEnv("AWS_PROFILE"); !ok {
-		return fmt.Errorf("AWS_PROFILE environment variable is not set")
-	}
-
-	var err error
-	c, err = client.New(esp)
-	if err != nil {
-		return err
-	}
-
-	viper.SetConfigName(esp.Filename)
-	viper.AddConfigPath(esp.Path)
-
-	// If a config file is found, read it in and mark that this is an ESP project.
-	if err := viper.ReadInConfig(); err == nil {
-		esp.IsEspProject = true
-	}
-
-	if esp.IsEspProject {
-		if err := viper.Unmarshal(&esp); err != nil {
-			return fmt.Errorf("parsing %s: %w", esp.Filename, err)
+		if _, ok := os.LookupEnv("AWS_DEFAULT_REGION"); !ok {
+			return fmt.Errorf("AWS_DEFAULT_REGION environment variable is not set")
 		}
-		if err := rootCmd.MarkFlagRequired("env"); err != nil {
-			return fmt.Errorf("marking --env required: %w", err)
+		if _, ok := os.LookupEnv("AWS_PROFILE"); !ok {
+			return fmt.Errorf("AWS_PROFILE environment variable is not set")
 		}
+
+		c, err := client.New(a.Config)
+		if err != nil {
+			return err
+		}
+		a.Client = c
+
+		viper.SetConfigName(a.Config.Filename)
+		viper.AddConfigPath(a.Config.Path)
+
+		if err := viper.ReadInConfig(); err == nil {
+			a.Config.IsEspProject = true
+		}
+
+		if a.Config.IsEspProject {
+			if err := viper.Unmarshal(a.Config); err != nil {
+				return fmt.Errorf("parsing %s: %w", a.Config.Filename, err)
+			}
+			if err := cmd.Root().MarkFlagRequired("env"); err != nil {
+				return fmt.Errorf("marking --env required: %w", err)
+			}
+		}
+		return nil
 	}
-	return nil
 }

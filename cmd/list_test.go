@@ -7,34 +7,31 @@ import (
 )
 
 func TestGetPathWithFullPath(t *testing.T) {
+	cfg := &app.Config{}
 	testPath := "/corpa/dev/foo_app/"
-	path := getPath([]string{testPath})
-	if path != testPath {
-		t.Errorf("want: %s | got %s", testPath, path)
+	if got := getPath(cfg, []string{testPath}); got != testPath {
+		t.Errorf("want: %s | got %s", testPath, got)
 	}
 }
 
 func TestGetPathEnvVarName(t *testing.T) {
+	cfg := &app.Config{}
 	envVar := "TEST_VAR"
-	path := getPath([]string{envVar})
-	if path != envVar {
-		t.Errorf("want: %s | got %s", envVar, path)
+	if got := getPath(cfg, []string{envVar}); got != envVar {
+		t.Errorf("want: %s | got %s", envVar, got)
 	}
 }
 
-// TestGetPathRelative pins getPath's empty-args branch: no positional
-// argument means "list the project's base path", which is built from
-// esp.GetAppPath() and follows the /OrgName/Env/AppName/ convention.
+// TestGetPathRelative pins getPath's empty-args branch.
 func TestGetPathRelative(t *testing.T) {
-	withAppConfig(t, app.Config{
+	cfg := &app.Config{
 		OrgName: "acme",
 		Env:     "dev",
 		AppName: "billing",
-	})
-
-	got := getPath(nil)
+	}
+	got := getPath(cfg, nil)
 	want := "/acme/dev/billing/"
 	if got != want {
-		t.Errorf("getPath(nil) = %q, want %q", got, want)
+		t.Errorf("getPath(cfg, nil) = %q, want %q", got, want)
 	}
 }
