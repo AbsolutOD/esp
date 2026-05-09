@@ -3,29 +3,36 @@ package ssm
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	awsssm "github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/AbsolutOD/esp/internal/common"
 	"github.com/AbsolutOD/esp/internal/utils"
+	"github.com/aws/aws-sdk-go-v2/config"
+	awsssm "github.com/aws/aws-sdk-go-v2/service/ssm"
 )
 
 type action string
 
-// Constants to represent actions to take against SSM
 const (
 	Get     action = "get"
 	GetMany action = "getMany"
-	//Put     action = "put"
-	Save   action = "save"
-	Delete action = "delete"
+	Save    action = "save"
+	Delete  action = "delete"
 )
 
-// Service the struct representing AWS service/Session
+// ssmAPI is the subset of the AWS SSM client used by Service.
+// The concrete *awsssm.Client satisfies it; tests inject a fake.
+// The four-method shape is required by NewGetParametersByPathPaginator,
+// whose first argument is awsssm.GetParametersByPathAPIClient.
+type ssmAPI interface {
+	PutParameter(ctx context.Context, in *awsssm.PutParameterInput, optFns ...func(*awsssm.Options)) (*awsssm.PutParameterOutput, error)
+	GetParameter(ctx context.Context, in *awsssm.GetParameterInput, optFns ...func(*awsssm.Options)) (*awsssm.GetParameterOutput, error)
+	DeleteParameter(ctx context.Context, in *awsssm.DeleteParameterInput, optFns ...func(*awsssm.Options)) (*awsssm.DeleteParameterOutput, error)
+	GetParametersByPath(ctx context.Context, in *awsssm.GetParametersByPathInput, optFns ...func(*awsssm.Options)) (*awsssm.GetParametersByPathOutput, error)
+}
+
+// Service is the SSM-backed implementation of client.Client.
 type Service struct {
-	Svc    *awsssm.Client
+	api    ssmAPI
 	Region string
-	Cfg    aws.Config
 }
 
 // mapErr applies the per-action error mapper. If the mapper returns
@@ -38,14 +45,25 @@ func mapErr(a action, err error) error {
 	return err
 }
 
+// New builds a Service backed by a real AWS SSM client. Returns an
+// error if AWS config loading fails.
+func New() (*Service, error) {
+	region := utils.GetEnv("AWS_REGION", "us-east-1")
+	cfg, err := config.LoadDefaultConfig(context.Background(), config.WithRegion(region))
+	if err != nil {
+		return nil, err
+	}
+	return &Service{api: awsssm.NewFromConfig(cfg), Region: region}, nil
+}
+
 // Save a single param for a given path
 func (s *Service) Save(p common.EspParamInput) (common.SaveOutput, error) {
 	pi := &awsssm.PutParameterInput{
 		Type:  selectType(p.Secure),
-		Name:  aws.String(p.Name),
-		Value: aws.String(p.Value),
+		Name:  &p.Name,
+		Value: &p.Value,
 	}
-	param, err := s.Svc.PutParameter(context.Background(), pi)
+	param, err := s.api.PutParameter(context.Background(), pi)
 	if err != nil {
 		return common.SaveOutput{}, mapErr(Save, err)
 	}
@@ -55,9 +73,9 @@ func (s *Service) Save(p common.EspParamInput) (common.SaveOutput, error) {
 // Delete a single param for a given path
 func (s *Service) Delete(p common.DeleteInput) (string, error) {
 	dpi := &awsssm.DeleteParameterInput{
-		Name: aws.String(p.Name),
+		Name: &p.Name,
 	}
-	_, err := s.Svc.DeleteParameter(context.Background(), dpi)
+	_, err := s.api.DeleteParameter(context.Background(), dpi)
 	if err != nil {
 		return "", mapErr(Delete, err)
 	}
@@ -67,10 +85,10 @@ func (s *Service) Delete(p common.DeleteInput) (string, error) {
 // GetOne gets a single param for a given path
 func (s *Service) GetOne(p common.GetOneInput) (common.EspParam, error) {
 	si := &awsssm.GetParameterInput{
-		Name:           aws.String(p.Name),
-		WithDecryption: aws.Bool(p.Decrypt),
+		Name:           &p.Name,
+		WithDecryption: &p.Decrypt,
 	}
-	resp, err := s.Svc.GetParameter(context.Background(), si)
+	resp, err := s.api.GetParameter(context.Background(), si)
 	if err != nil {
 		return common.EspParam{}, mapErr(Get, err)
 	}
@@ -80,11 +98,11 @@ func (s *Service) GetOne(p common.GetOneInput) (common.EspParam, error) {
 // GetMany recursively gets parameters from a given path
 func (s *Service) GetMany(p common.ListParamInput) ([]common.EspParam, error) {
 	si := &awsssm.GetParametersByPathInput{
-		Path:           aws.String(p.Path),
-		WithDecryption: aws.Bool(p.Decrypt),
-		Recursive:      aws.Bool(p.Recursive),
+		Path:           &p.Path,
+		WithDecryption: &p.Decrypt,
+		Recursive:      &p.Recursive,
 	}
-	paginator := awsssm.NewGetParametersByPathPaginator(s.Svc, si)
+	paginator := awsssm.NewGetParametersByPathPaginator(s.api, si)
 
 	var espParams []common.EspParam
 	for paginator.HasMorePages() {
@@ -101,37 +119,13 @@ func (s *Service) GetMany(p common.ListParamInput) ([]common.EspParam, error) {
 
 // Copy method copies the given parameter to a new location
 func (s *Service) Copy(cc common.CopyCommand) (common.SaveOutput, error) {
-	input := common.GetOneInput{
-		Name:    cc.Source,
-		Decrypt: true,
-	}
-	sparam, err := s.GetOne(input)
+	sparam, err := s.GetOne(common.GetOneInput{Name: cc.Source, Decrypt: true})
 	if err != nil {
 		return common.SaveOutput{}, err
 	}
-
-	dparam := common.EspParamInput{
+	return s.Save(common.EspParamInput{
 		Name:   cc.Destination,
 		Secure: sparam.Secure,
 		Value:  sparam.Value,
-	}
-	return s.Save(dparam)
-}
-
-// New Create a new SSM service
-func New() *Service {
-	svc := new(Service)
-	svc.Region = utils.GetEnv("AWS_REGION", "us-east-1")
-	return svc
-}
-
-// Init create the actual session to talk to the AWS API
-func (s *Service) Init() error {
-	cfg, err := config.LoadDefaultConfig(context.Background(), config.WithRegion(s.Region))
-	if err != nil {
-		return err
-	}
-	s.Cfg = cfg
-	s.Svc = awsssm.NewFromConfig(cfg)
-	return nil
+	})
 }
