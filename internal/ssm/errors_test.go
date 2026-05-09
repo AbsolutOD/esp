@@ -132,37 +132,6 @@ func TestCheckDeleteParameterError(t *testing.T) {
 	}
 }
 
-func TestCheckSSMByPathError(t *testing.T) {
-	tests := []struct {
-		name     string
-		err      error
-		wantSelf bool
-		wantNil  bool
-	}{
-		{name: "InternalServerError", err: &ssmtypes.InternalServerError{}, wantSelf: true},
-		{name: "InvalidFilterKey", err: &ssmtypes.InvalidFilterKey{}, wantSelf: true},
-		{name: "InvalidFilterOption", err: &ssmtypes.InvalidFilterOption{}, wantSelf: true},
-		{name: "InvalidFilterValue", err: &ssmtypes.InvalidFilterValue{}, wantSelf: true},
-		{name: "InvalidKeyId", err: &ssmtypes.InvalidKeyId{}, wantSelf: true},
-		{name: "InvalidNextToken", err: &ssmtypes.InvalidNextToken{}, wantSelf: true},
-		{name: "generic smithy.APIError falls through and is returned", err: genericAPIErr(), wantSelf: true},
-		{name: "plain non-API error returns nil", err: plainErr(), wantNil: true},
-		{name: "nil input returns nil", err: nil, wantNil: true},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			got := checkSSMByPathError(tc.err)
-			if tc.wantSelf && got != tc.err {
-				t.Errorf("checkSSMByPathError(%v) = %v, want input err returned", tc.err, got)
-			}
-			if tc.wantNil && got != nil {
-				t.Errorf("checkSSMByPathError(%v) = %v, want nil", tc.err, got)
-			}
-		})
-	}
-}
-
 // TestCheckSSMError exercises the dispatcher: each known action
 // routes to the matching per-action function; an unknown action
 // (e.g. GetMany, which has no case) falls through to checkBaseSSMErrors.

@@ -117,35 +117,3 @@ func checkSSMPutParameterError(err error) error {
 	return nil
 }
 
-// checkSSMByPathError checks for errors the GetParameterByPath API call might return
-func checkSSMByPathError(err error) error {
-	var internalErr *ssmtypes.InternalServerError
-	if errors.As(err, &internalErr) {
-		return err
-	}
-	var invalidFilterKey *ssmtypes.InvalidFilterKey
-	if errors.As(err, &invalidFilterKey) {
-		return err
-	}
-	var invalidFilterOption *ssmtypes.InvalidFilterOption
-	if errors.As(err, &invalidFilterOption) {
-		return err
-	}
-	var invalidFilterValue *ssmtypes.InvalidFilterValue
-	if errors.As(err, &invalidFilterValue) {
-		return err
-	}
-	var invalidKey *ssmtypes.InvalidKeyId
-	if errors.As(err, &invalidKey) {
-		return err
-	}
-	var invalidNextToken *ssmtypes.InvalidNextToken
-	if errors.As(err, &invalidNextToken) {
-		return err
-	}
-	var apiErr smithy.APIError
-	if errors.As(err, &apiErr) {
-		return err
-	}
-	return nil
-}
