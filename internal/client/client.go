@@ -28,8 +28,8 @@ func New(c *app.Config) (*EspClient, error) {
 	if c.Backend != "ssm" {
 		return nil, fmt.Errorf("unsupported backend %q", c.Backend)
 	}
-	svc := ssm.New()
-	if err := svc.Init(); err != nil {
+	svc, err := ssm.New()
+	if err != nil {
 		return nil, err
 	}
 	return &EspClient{
