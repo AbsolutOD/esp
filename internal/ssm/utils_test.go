@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
-	"github.com/pinpt/esp/internal/common"
+	"github.com/AbsolutOD/esp/internal/common"
 )
 
 func TestSelectType(t *testing.T) {

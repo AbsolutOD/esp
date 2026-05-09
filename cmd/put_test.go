@@ -3,7 +3,7 @@ package cmd
 import (
 	"testing"
 
-	"github.com/pinpt/esp/internal/app"
+	"github.com/AbsolutOD/esp/internal/app"
 )
 
 // withOrgPrefix swaps in a test OrgPrefix on the package-level esp

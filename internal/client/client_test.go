@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/pinpt/esp/internal/app"
+	"github.com/AbsolutOD/esp/internal/app"
 )
 
 // TestNewUnsupportedBackend covers the only branch of client.New
