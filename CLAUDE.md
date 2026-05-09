@@ -25,17 +25,17 @@ go test ./internal/app -run TestWriteConfig
 ./esp --verbose <subcommand>
 ```
 
-`AWS_DEFAULT_REGION` and `AWS_PROFILE` must be set before invoking any subcommand — `cmd/root.go`'s `persistentPreRun` (wired as `rootCmd.PersistentPreRunE`) returns an error if either is missing, which cobra surfaces as `Error: <message>` on stderr; `Execute()` then exits 1. (Previously, missing env vars exited 1 or 2 directly via `os.Exit`; the codes now collapse to a uniform 1.) They are NOT required for `esp --help` (cobra short-circuits before `PersistentPreRunE`) or for `go test ./...`.
+`AWS_DEFAULT_REGION` and `AWS_PROFILE` must be set before invoking any subcommand — `cmd/root.go`'s `persistentPreRunE` returns an error if either is missing, which cobra surfaces as `Error: <message>` on stderr; `Execute()` then exits 1. (Previously, missing env vars exited 1 or 2 directly via `os.Exit`; the codes now collapse to a uniform 1.) They are NOT required for `esp --help` (cobra short-circuits before `PersistentPreRunE`) or for `go test ./...`.
 
 ## Architecture
 
 The code is organized in three layers:
 
-1. **`cmd/`** — Cobra subcommands (`get`, `list`/`ls`, `put`/`add`/`create`, `delete`/`rm`, `copy`/`cp`, `move`/`mv`, `init`, `version`). Each file registers itself onto `rootCmd` via `init()`. The package-level globals `esp *app.Config` and `c *client.EspClient` (in `cmd/root.go`) are constructed once in `root.go`'s `init()` and used by every subcommand.
+1. **`cmd/`** — Cobra subcommands (`get`, `list`/`ls`, `put`/`add`/`create`, `delete`/`rm`, `copy`/`cp`, `move`/`mv`, `init`, `version`). Each file exports a `newXCmd(*App)` constructor (or `newVersionCmd()` for version, which doesn't depend on App). `cmd.Execute()` builds a single `*App` holder containing `Config *app.Config` and `Client *client.EspClient`, threads it through each constructor, and adds the resulting commands to the root. `Config` is populated at construction time; `Client` is `nil` until the root's `PersistentPreRunE` validates AWS env vars and calls `client.New(a.Config)` to populate it. Each subcommand's `RunE` is a thin closure that calls a free function `runX(cmd, args, c, cfg)` — those `runX` functions are the unit-testable seam.
 
 2. **`internal/client/`** — A thin facade over a backend `Client` interface (`Save`, `GetOne`, `GetMany`, `Copy`, `Delete`); each method returns `(value, error)`. `client.New` switches on `Config.Backend`; today the only valid value is `"ssm"`, and any other value returns `fmt.Errorf("unsupported backend %q", c.Backend)`. Add new backends here.
 
-3. **`internal/ssm/`** — The AWS SSM implementation of the `Client` interface, plus parameter-type conversion (`utils.go`) and AWS-error mapping (`errors.go`).
+3. **`internal/ssm/`** — The AWS SSM implementation of the `Client` interface, plus parameter-type conversion (`utils.go`) and AWS-error mapping (`errors.go`). `Service` holds an unexported `ssmAPI` interface (covering the four AWS SDK methods used: `PutParameter`, `GetParameter`, `DeleteParameter`, `GetParametersByPath`); the concrete `*awsssm.Client` satisfies it in production, and tests inject a fake. `ssm.New() (*Service, error)` calls `config.LoadDefaultConfig` and `awsssm.NewFromConfig` itself — the prior two-step `New`+`Init` is gone.
 
 `internal/common/` defines the wire types (`EspParam`, `EspParamInput`, `GetOneInput`, `ListParamInput`, `CopyCommand`, `MoveCommand`, etc.) shared between `cmd`, `client`, and `ssm` to avoid import cycles.
 
@@ -47,7 +47,7 @@ The code is organized in three layers:
 
 ## Adding a subcommand
 
-Create a new file under `cmd/`, define a `*cobra.Command`, register it in an `init()` with `rootCmd.AddCommand(...)`, and use the package-level `c` (`*client.EspClient`) and `esp` (`*app.Config`) for backend operations and path resolution. Mirror the existing pattern of building a `common.*Input` struct and passing it to the client method.
+Create a new file under `cmd/` and export a constructor `newFooCmd(a *App) *cobra.Command` returning the configured cobra command. Inside `RunE`, delegate to a free function `runFoo(cmd, args, a.Client, a.Config)` (or whatever subset of dependencies the command needs) — keep the closure tiny so the body is testable in isolation. Wire the constructor into `cmd/root.go::Execute()`'s `root.AddCommand(...)` call. Mirror the existing pattern of building a `common.*Input` struct and passing it to the client method.
 
 ## Adding a backend
 
@@ -57,6 +57,10 @@ Implement the `client.Client` interface (`internal/client/client.go`) in a new p
 
 Tests use stdlib `testing` only (no testify). Table-driven where the function has multiple distinct cases. One `_test.go` file per package, alongside the file under test. The bar is: every pure function reachable from a subcommand has a happy-path test plus its meaningful edge cases.
 
-Functions that exist only for side effects against AWS — `Service.Save` / `GetOne` / `GetMany` / `Copy` / `Delete`, the `EspClient` wrappers in `internal/client/`, and `Service.Init` — are intentionally not unit-tested. Exercising them requires either real AWS credentials or a dependency-injection seam that doesn't exist yet. The `client.New` test (`internal/client/client_test.go`) covers only the unsupported-backend path for that reason.
+Two DI seams enable unit-testing the AWS-coupled code without real credentials:
+- **`internal/ssm/`** — the unexported `ssmAPI` interface on `Service.api`. Tests construct a `Service` with a fake `ssmAPI` implementation and assert behavior of `Save`/`GetOne`/`GetMany`/`Delete`/`Copy` including AWS error-mapping.
+- **`internal/client/`** — the existing `Client` interface on `EspClient.Client`. Tests construct an `EspClient{Backend: "ssm", Client: fake}` and assert wrapper composition (notably `Move` and `Copy`).
 
-The `cmd` package shares two package-level globals (`esp *app.Config` and `c *client.EspClient`) across subcommands. Tests that depend on them use the local `withOrgPrefix` and `withAppConfig` helpers in `cmd/put_test.go` and `cmd/get_test.go` to swap values in and restore them via `t.Cleanup`.
+In `cmd/`, tests construct a per-test `*app.Config` and a fake-backed `*client.EspClient`, then invoke the relevant `runX` function directly. There are no package-level globals in `cmd/` — all state lives on the `*App` holder threaded through subcommand constructors.
+
+Coverage gaps that remain (deliberately): `ssm.New()` (calls `config.LoadDefaultConfig`, environment-coupled), `app.InitQuestions` and `cmd/init.go` (interactive `survey.Ask`), and the `cmd/get.go::display*` print helpers (formatting only, no logic).
