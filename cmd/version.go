@@ -6,6 +6,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 func newVersionCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
@@ -17,7 +23,11 @@ func newVersionCmd() *cobra.Command {
 	}
 }
 
+func versionString() string {
+	return fmt.Sprintf("esp %s (commit %s, built %s)", version, commit, date)
+}
+
 func runVersion() error {
-	fmt.Println("ESP version 0.2.0")
+	fmt.Println(versionString())
 	return nil
 }
