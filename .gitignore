@@ -3,6 +3,8 @@
 .espFile.yaml
 .worktrees/
 .claude/
+/esp
+/dist/
 
 # Test binary, build with `go test -c`
 *.test
